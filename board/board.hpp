@@ -4,20 +4,37 @@
 #include <unordered_map>
 
 
-class Board{
-    enum color{WHITE, BLACK};
+/*
+    TODOS: look into how to move pieces from the bitboard point of view. 
+    
 
+*/
+
+class Board{
+    enum color{
+        WHITE = 0, 
+        BLACK = 5
+    };
     color side;
 
-    uint64_t rooks[2];
-    uint64_t bishops[2];
-    uint64_t pawns[2];
-    uint64_t queens[2];
-    uint64_t kings[2];
-    uint64_t knights[2];
+    enum pieces{
+        PAWNS,
+        KNIGHTS,
+        BISHOPS,
+        QUEEN,
+        KING,
+        ROOKS
+    };
+
+    uint64_t board[12];
+
+    const static std::unordered_map<std::string, uint64_t> square_to_num;
+    const static std::unordered_map<uint64_t, std::string> num_to_square;
 
 public:
-    uint64_t update(const std::string& s){
-        return 0;
-    };
+    void print();
+    Board();
+
+    void update(const std::string&);
+    
 };

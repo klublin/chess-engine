@@ -3,6 +3,8 @@ project(chess_engine)
 
 add_executable(chess main.cpp)
 
+add_compile_options(-Wall -O2 -Werror)
+
 add_subdirectory(board)
 add_subdirectory(evaluation)
 add_subdirectory(moving)
