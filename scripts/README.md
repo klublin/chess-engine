@@ -1,0 +1,1 @@
+some stuff I used to generate some of the lookup tables
