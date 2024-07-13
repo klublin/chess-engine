@@ -10,7 +10,6 @@
 int main(){
     std::string input;
     Board b;
-    Engine engine;
 
     b.print();
 
@@ -23,8 +22,9 @@ int main(){
         if(input == "end"){
             break;
         }
-        std::cout << engine.response() << "\n";
         
+        b.update(input);
+        b.print();
     }
 
 
