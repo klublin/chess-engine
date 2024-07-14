@@ -89,25 +89,25 @@ const std::unordered_map<char, Board::piece> Board::reverse_symbol_map = {
 };
 
 Board::Board() : side(WHITE){
-    bitboards[ROOKS + WHITE] = 0;//square_to_num.at("A1") | square_to_num.at("H1");
-    bitboards[ROOKS + BLACK] = 0;//square_to_num.at("A8") | square_to_num.at("H8");
+    bitboards[ROOKS + WHITE] = square_to_num.at("A1") | square_to_num.at("H1");
+    bitboards[ROOKS + BLACK] = square_to_num.at("A8") | square_to_num.at("H8");
     
-    bitboards[BISHOPS + WHITE] = 0;//square_to_num.at("C1") | square_to_num.at("F1");
-    bitboards[BISHOPS + BLACK] = 0;//square_to_num.at("C8") | square_to_num.at("F8");
+    bitboards[BISHOPS + WHITE] = square_to_num.at("C1") | square_to_num.at("F1");
+    bitboards[BISHOPS + BLACK] = square_to_num.at("C8") | square_to_num.at("F8");
 
-    bitboards[PAWNS + WHITE] = 0;//square_to_num.at("A2") | square_to_num.at("B2") | square_to_num.at("C2") | square_to_num.at("D2") | 
-                    //square_to_num.at("E2") | square_to_num.at("F2") | square_to_num.at("G2") | square_to_num.at("H2");
-    bitboards[PAWNS + BLACK] = 0;//square_to_num.at("A7") | square_to_num.at("B7") | square_to_num.at("C7") | square_to_num.at("D7") | 
-                    //square_to_num.at("E7") | square_to_num.at("F7") | square_to_num.at("G7") | square_to_num.at("H7");
+    bitboards[PAWNS + WHITE] = square_to_num.at("A2") | square_to_num.at("B2") | square_to_num.at("C2") | square_to_num.at("D2") | 
+                            square_to_num.at("E2") | square_to_num.at("F2") | square_to_num.at("G2") | square_to_num.at("H2");
+    bitboards[PAWNS + BLACK] = square_to_num.at("A7") | square_to_num.at("B7") | square_to_num.at("C7") | square_to_num.at("D7") | 
+                    square_to_num.at("E7") | square_to_num.at("F7") | square_to_num.at("G7") | square_to_num.at("H7");
     
-    bitboards[QUEEN + WHITE] = 0;//square_to_num.at("D1");
-    bitboards[QUEEN + BLACK] = 0;//square_to_num.at("D8");
+    bitboards[QUEEN + WHITE] = square_to_num.at("D1");
+    bitboards[QUEEN + BLACK] = square_to_num.at("D8");
     
     bitboards[KING + WHITE] = square_to_num.at("E1");
     bitboards[KING + BLACK] = square_to_num.at("E8");
 
-    bitboards[KNIGHTS + WHITE] = 0;//square_to_num.at("B1") | square_to_num.at("G1"); 
-    bitboards[KNIGHTS + BLACK] = 0;//square_to_num.at("B8") | square_to_num.at("G8");
+    bitboards[KNIGHTS + WHITE] = square_to_num.at("B1") | square_to_num.at("G1"); 
+    bitboards[KNIGHTS + BLACK] = square_to_num.at("B8") | square_to_num.at("G8");
 }
 
 uint64_t Board::check_pawn_move(uint64_t curr_board, uint64_t own_side){
@@ -115,7 +115,33 @@ uint64_t Board::check_pawn_move(uint64_t curr_board, uint64_t own_side){
 }
 
 uint64_t Board::check_knight_move(uint64_t curr_board, uint64_t own_side){
-    return 0;
+    /*
+        knight has 8 spots to move to
+            x1x2x  
+            3xxx4  
+            xxNxx
+            5xxx6
+            x7x8x    
+    */
+    uint64_t mask_a = mask_file.at('a');
+    uint64_t mask_h = mask_file.at('h');
+
+    uint64_t mask_a_b = mask_file.at('a') & mask_file.at('b');
+    uint64_t mask_g_h = mask_file.at('g') & mask_file.at('h');
+
+    uint64_t spot1 = mask_a << 15;
+    uint64_t spot2 = mask_h << 17;
+    uint64_t spot3 = mask_a_b << 6;
+    uint64_t spot4 = mask_g_h << 10;
+
+    uint64_t spot5 = mask_a_b >> 10;
+    uint64_t spot6 = mask_g_h >> 6;
+    uint64_t spot7 = mask_a >> 17;
+    uint64_t spot8 = mask_h >> 15;
+
+    uint64_t valid_spots = spot1 | spot2 | spot3 | spot4 | spot5 | spot6 | spot7 | spot8;
+
+    return (valid_spots & ~own_side);
 }
 
 uint64_t Board::check_bishop_move(uint64_t curr_board, uint64_t own_side){
@@ -240,6 +266,8 @@ void Board::update(const std::string& s){
         capture();
     }
     else{
+        //figure out source square
+        //pop bit of source square and set bit for target square
         bitboards[curr + side] = 0;
         bitboards[curr + side] |= target_square; 
     }
