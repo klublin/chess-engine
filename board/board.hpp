@@ -65,7 +65,7 @@ class Board{
     const static std::unordered_map<int, uint64_t> clear_file;
     const static std::unordered_map<int, uint64_t> mask_file;
 
-    char which_piece(const uint64_t board);
+    int which_piece(const uint64_t board);
 
     uint64_t check_pawn_move(uint64_t, uint64_t);
     uint64_t check_knight_move(uint64_t, uint64_t);
@@ -78,6 +78,6 @@ public:
     void print();
     Board();
 
-    void update(const std::string&);
+    void update(const std::string&, const std::string&);
     
 };

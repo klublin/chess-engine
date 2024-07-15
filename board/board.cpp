@@ -77,6 +77,7 @@ const std::unordered_map<int, char> Board::symbol_map = {
     {QUEEN + BLACK, 'Q'},
     {KING + BLACK, 'K'},
     {ROOKS + BLACK, 'R'},
+    {2*NUM_PIECES, ' '}
 };
 
 const std::unordered_map<char, Board::piece> Board::reverse_symbol_map = {
@@ -195,25 +196,14 @@ void capture(){
 }
 
 
-void Board::update(const std::string& s){
+void Board::update(const std::string &from, const std::string& target){
     piece curr;
     color opp;
-    std::string target;
-
-    if(s.size() == 2){
-        curr = PAWNS;
-    }
-    else if(s.size() == 3){
-        curr = reverse_symbol_map.at(s[0]);
-        target = s.substr(1);
-    }
-    else{
-        curr = reverse_symbol_map.at(s[0]);
-        target = s.substr(2);
-    }
-    //todo: error checking
+    
+    curr = reverse_symbol_map.at(symbol_map.at((square_to_num.at(from))));
 
     uint64_t target_square = square_to_num.at(target);
+    uint64_t source_square = square_to_num.at(from);
 
     uint64_t own_side = 0;
     uint64_t other_side = 0;
@@ -225,32 +215,39 @@ void Board::update(const std::string& s){
         opp = WHITE;
     }
 
+    uint64_t curr_board = bitboards[curr + side];
+
+    if((curr_board & source_square) == 0){
+        //the piece isn't even there!
+        //need error code. 
+        return;
+    }
+
     for(int i = WHITE; i < NUM_PIECES; i++){
        own_side |= bitboards[i + side];
        other_side |= bitboards[i + opp];
     }
 
-    uint64_t curr_bitboard = bitboards[curr + side];
     uint64_t validate = 0;
     
     switch(curr){
         case PAWNS:
-            validate = check_pawn_move(curr_bitboard, own_side);
+            validate = check_pawn_move(source_square, own_side);
             break;
         case BISHOPS:
-            validate = check_bishop_move(curr_bitboard, own_side);
+            validate = check_bishop_move(source_square, own_side);
             break;
         case KNIGHTS:
-            validate = check_knight_move(curr_bitboard, own_side);
+            validate = check_knight_move(source_square, own_side);
             break;
         case KING:
-            validate = check_king_move(curr_bitboard, own_side);
+            validate = check_king_move(source_square, own_side);
             break;
         case QUEEN:
-            validate = check_queen_move(curr_bitboard, own_side);
+            validate = check_queen_move(source_square, own_side);
             break;
         case ROOKS:
-            validate = check_rook_move(curr_bitboard, own_side);
+            validate = check_rook_move(source_square, own_side);
             break;
     }
 
@@ -268,19 +265,17 @@ void Board::update(const std::string& s){
     else{
         //figure out source square
         //pop bit of source square and set bit for target square
-        bitboards[curr + side] = 0;
-        bitboards[curr + side] |= target_square; 
+        bitboards[curr + side] &= ~(source_square);
+        bitboards[curr + side] |= target_square;
     }
-
-    
 }
 
-char Board::which_piece(const uint64_t square){
+int Board::which_piece(const uint64_t square){
     for(int i = 0; i < 12; i++){
         if((bitboards[i] & square) != 0)
-            return symbol_map.at(i);
+            return i;
     }
-    return ' ';
+    return 12;
 }
 
 void Board::print(){
@@ -293,7 +288,7 @@ void Board::print(){
     for(int i = 7; i >= 0; i--){
         for(int j = 0; j < 8; j++){
             uint64_t mask = 1ULL << (i*8+j);
-            std::cout << which_piece(all_pieces & mask) << " ";
+            std::cout << symbol_map.at(which_piece(all_pieces & mask)) << " ";
         }
         std::cout << "\n";
     }
