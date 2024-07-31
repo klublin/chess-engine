@@ -23,7 +23,7 @@
 //     {72057594037927936, "A8"}, {144115188075855872, "B8"}, {288230376151711744, "C8"}, {576460752303423488, "D8"}, {1152921504606846976, "E8"}, {2305843009213693952, "F8"}, {4611686018427387904, "G8"}, {9223372036854775808ULL, "H8"}
 // };
 
-const std::unordered_map<std::string, Board::square> Board::square_map{
+const std::unordered_map<std::string, square> Board::square_map{
     {"a1",a1}, {"a2",a2}, {"a3",a3}, {"a4",a4}, {"a5",a5}, {"a6",a6}, {"a7",a7}, {"a8",a8}, 
     {"b1",b1}, {"b2",b2}, {"b3",b3}, {"b4",b4}, {"b5",b5}, {"b6",b6}, {"b7",b7}, {"b8",b8}, 
     {"c1",c1}, {"c2",c2}, {"c3",c3}, {"c4",c4}, {"c5",c5}, {"c6",c6}, {"c7",c7}, {"c8",c8}, 
@@ -32,47 +32,6 @@ const std::unordered_map<std::string, Board::square> Board::square_map{
     {"f1",f1}, {"f2",f2}, {"f3",f3}, {"f4",f4}, {"f5",f5}, {"f6",f6}, {"f7",f7}, {"f8",f8}, 
     {"g1",g1}, {"g2",g2}, {"g3",g3}, {"g4",g4}, {"g5",g5}, {"g6",g6}, {"g7",g7}, {"g8",g8}, 
     {"h1",h1}, {"h2",h2}, {"h3",h3}, {"h4",h4}, {"h5",h5}, {"h6",h6}, {"h7",h7}, {"h8",h8}, 
-};
-
-const std::unordered_map<int, uint64_t> Board::clear_rank{
-    {1,18446744073709551360ULL},
-    {2,18446744073709486335ULL},
-    {3,18446744073692839935ULL},
-    {4,18446744069431361535ULL},
-    {5,18446742978492891135ULL},
-    {6,18446463698244468735ULL},
-    {7,18374967954648334335ULL},
-    {8,72057594037927935ULL},
-};
-const std::unordered_map<int, uint64_t> Board::mask_rank{
-    {1,255ULL},
-    {2,65280ULL},
-    {3,16711680ULL},
-    {4,4278190080ULL},
-    {5,1095216660480ULL},
-    {6,280375465082880ULL},
-    {7,71776119061217280ULL},
-    {8,18374686479671623680ULL},
-};
-const std::unordered_map<char, uint64_t> Board::clear_file{
-    {'a',18374403900871474942ULL},
-    {'b',18302063728033398269ULL},
-    {'c',18157383382357244923ULL},
-    {'d',17868022691004938231ULL},
-    {'e',17289301308300324847ULL},
-    {'f',16131858542891098079ULL},
-    {'g',13816973012072644543ULL},
-    {'h',9187201950435737471ULL},
-};
-const std::unordered_map<char, uint64_t> Board::mask_file{
-    {'a',72340172838076673ULL},
-    {'b',144680345676153346ULL},
-    {'c',289360691352306692ULL},
-    {'d',578721382704613384ULL},
-    {'e',1157442765409226768ULL},
-    {'f',2314885530818453536ULL},
-    {'g',4629771061636907072ULL},
-    {'h',9259542123273814144ULL},
 };
 
 const std::unordered_map<int, char> Board::symbol_map = {
@@ -100,30 +59,6 @@ const std::unordered_map<char, Board::piece> Board::reverse_symbol_map = {
     {'Q', QUEEN}
 };
 
-const std::array<int, 64> bishop_occupancy_bits{
-    6,5,5,5,5,5,5,6,
-    5,5,5,5,5,5,5,5,
-    5,5,7,7,7,7,5,5,
-    5,5,7,9,9,7,5,5,
-    5,5,7,9,9,7,5,5,
-    5,5,7,7,7,7,5,5,
-    5,5,5,5,5,5,5,5,
-    6,5,5,5,5,5,5,6,
-};
-
-const std::array<int, 64> rook_occupancy_bits {
-    12,11,11,11,11,11,11,12,
-    11,10,10,10,10,10,10,11,
-    11,10,10,10,10,10,10,11,
-    11,10,10,10,10,10,10,11,
-    11,10,10,10,10,10,10,11,
-    11,10,10,10,10,10,10,11,
-    11,10,10,10,10,10,10,11,
-    12,11,11,11,11,11,11,12,
-};
-
-bool Board::init_magic = false;
-
 void print_bitboard(uint64_t board){
     for(int i = 0; i < 8; i++){
         std::cout << (8 - i) << "   ";
@@ -140,233 +75,7 @@ void print_bitboard(uint64_t board){
     std::cout << "\n";
 }
 
-int count_bits(uint64_t a){
-    int count;
-    for(count = 0; a; count++, a &= (a-1));
-    return count;
-}
-
-uint64_t Board::mask_rook_attack(square s){
-    int file = s%8;
-    int rank = s/8;
-
-    uint64_t attack_map = 0;
-    
-    //RIGHT
-    for(int r = rank, c = file + 1; c < RANK_7; c++){
-        attack_map |= 1ULL << (r*8 + c); 
-    }
-    //up
-    for(int r = rank + 1, c = file; r < RANK_7; r++){
-        attack_map |= 1ULL << (r * 8 + c);
-    }
-    //LEFT
-    for(int r = rank, c = file - 1; c > 0 ; c--){
-        attack_map |= 1ULL << (r * 8 + c);
-    }
-    //down
-    for(int r = rank - 1, c = file; r > 0; r--){
-        attack_map |= 1ULL << (r * 8 + c);
-    }
-    return attack_map;
-}
-
-uint64_t Board::mask_rook_attack_ray(square s, uint64_t blockers){
-    int file = s%8;
-    int rank = s/8;
-
-    uint64_t attack_map = 0;
-    
-    //RIGHT
-    for(int r = rank, c = file + 1; c < RANK_7; c++){
-        attack_map |= 1ULL << (r*8 + c); 
-        if(blockers & (1ULL << (r* 8 + c))) break;
-    }
-    //up
-    for(int r = rank + 1, c = file; r < RANK_7; r++){
-        attack_map |= 1ULL << (r * 8 + c);
-        if(blockers & (1ULL << (r* 8 + c))) break;
-    }
-    //LEFT
-    for(int r = rank, c = file - 1; c > 0 ; c--){
-        attack_map |= 1ULL << (r * 8 + c);
-        if(blockers & (1ULL << (r* 8 + c))) break;
-    }
-    //down
-    for(int r = rank - 1, c = file; r > 0; r--){
-        attack_map |= 1ULL << (r * 8 + c);
-        if(blockers & (1ULL << (r* 8 + c))) break;
-    }
-    return attack_map;
-}
-
-uint64_t Board::mask_bishop_attack(Board::square s){
-    int file = s%8;
-    int rank = s/8;
-
-    uint64_t attack_map = 0;
-    
-    //up diagonal RIGHT
-    for(int r = rank + 1, c = file + 1; r < RANK_7 && c < RANK_7; r++, c++){
-        attack_map |= 1ULL << (r*8 + c); 
-    }
-
-    //DOWN DIAGONAL RIGHT
-    for(int r = rank - 1, c = file + 1; c < RANK_7 && r > 0; r--, c++){
-        attack_map |= 1ULL << (r * 8 + c);
-    }
-
-    //LEFT DIAGONAL UP
-    for(int r = rank + 1, c = file  - 1; c > 0 && r < RANK_7; c--, r++){
-        attack_map |= 1ULL << (r * 8 + c);
-    }
-
-    //LEFT DIAGONAL DOWN
-    for(int r = rank - 1, c = file - 1; c > 0 && r > 0; r--, c--){
-        attack_map |= 1ULL << (r * 8 + c);
-    }
-    return attack_map;
-}
-
-uint64_t Board::mask_bishop_attack_ray(square s, uint64_t blockers){
-    int file = s%8;
-    int rank = s/8;
-
-    uint64_t attack_map = 0;
-    
-    //up diagonal RIGHT
-    for(int r = rank + 1, c = file + 1; r < RANK_7 && c < RANK_7; r++, c++){
-        attack_map |= 1ULL << (r*8 + c); 
-        if(blockers & (1ULL << (r* 8 + c))) break;
-    }
-
-    //DOWN DIAGONAL RIGHT
-    for(int r = rank - 1, c = file + 1; c < RANK_7 && r > 0; r--, c++){
-        attack_map |= 1ULL << (r * 8 + c);
-        if(blockers & (1ULL << (r* 8 + c))) break;
-    }
-
-    //LEFT DIAGONAL UP
-    for(int r = rank + 1, c = file  - 1; c > 0 && r < RANK_7; c--, r++){
-        attack_map |= 1ULL << (r * 8 + c);
-        if(blockers & (1ULL << (r* 8 + c))) break;
-    }
-
-    //LEFT DIAGONAL DOWN
-    for(int r = rank - 1, c = file - 1; c > 0 && r > 0; r--, c--){
-        attack_map |= 1ULL << (r * 8 + c);
-        if(blockers & (1ULL << (r* 8 + c))) break;
-    }
-    return attack_map;
-}
-
-uint64_t Board::random_num() {
-  uint64_t u1, u2, u3, u4;
-  u1 = (uint64_t)(random()) & 0xFFFF; u2 = (uint64_t)(random()) & 0xFFFF;
-  u3 = (uint64_t)(random()) & 0xFFFF; u4 = (uint64_t)(random()) & 0xFFFF;
-  return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
-}
-
-uint64_t Board::generate_magic_nums() {
-  return random_num() & random_num() & random_num();
-}
-
-inline int get_lsb_index(uint64_t num){
-    if(num){
-        return count_bits((num & -num) - 1);
-    }
-    return -1;
-}
-
-uint64_t occupancy(int index, uint64_t attack_mask){
-    int count = count_bits(attack_mask);
-    uint64_t occup_map = 0;
-
-    for(int i = 0; i < count; i++){
-        int square = get_lsb_index(attack_mask);
-
-        attack_mask ^= (1ULL << square);
-
-        if(index & 1 << i){
-            occup_map |= 1ULL << square;
-        }
-    }
-    return occup_map;
-}
-
-uint64_t Board::find_magic(Board::square square, Board::piece p){
-    std::array<uint64_t, 4096> occupancies;
-    std::array<uint64_t, 4096> attacks;
-    std::array<uint64_t, 4096> used_attacks;
-
-    uint64_t attack_mask = p == BISHOPS ? mask_bishop_attack(square) : mask_rook_attack(square);
-    int occupancy_bitshift = 64 - (p == BISHOPS ? bishop_occupancy_bits[square] : rook_occupancy_bits[square]);
-    int num_bits = count_bits(attack_mask);
-
-    for(int i = 0; i < (1 << num_bits); i++){
-        occupancies[i] = occupancy(i, attack_mask);
-
-        attacks[i] = p == BISHOPS ? mask_bishop_attack_ray(square, occupancies[i]) 
-                                    : mask_rook_attack_ray(square, occupancies[i]);
-    }
-
-    for(int i = 0; i < 100000000; i++){
-        uint64_t magic = generate_magic_nums();
-        //need top bits to be set for hash function to work
-        if(count_bits((attack_mask * magic) & 0xFF00000000000000ULL) < 6){
-            continue;
-        }
-        used_attacks.fill(0);
-
-        bool fail = false;
-
-        for(int index = 0; !fail && index < (1 << num_bits); index++){
-            int magic_index = (int)((occupancies[index] * magic) >> occupancy_bitshift);
-
-            if(used_attacks[magic_index] == 0ULL) 
-                used_attacks[magic_index] = attacks[index];
-            else{
-                fail = true;
-            }
-        }
-
-        if(!fail){
-            return magic;
-        }
-    }
-
-    std::cout << "FAILED\n";
-    return 0;
-}
-
-uint64_t Board::fill_magic_table_rook(){
-    printf("const std::array<uint64_t, 64> = {\n");
-    for(int i = a8; i <= h1; i++)
-    {
-        printf("  0x%lxULL,\n", find_magic(static_cast<square>(i), ROOKS));
-    }
-    printf("};\n\n");
-
-    return 0;
-}
-
-uint64_t Board::fill_magic_table_bishop(){
-    printf("const std::array<uint64_t, 64> = {\n");
-    for(int i = a8; i <= h1; i++)
-    {
-        printf("  0x%lxULL,\n", find_magic(static_cast<square>(i), BISHOPS));
-    }
-    printf("};\n\n");
-
-    return 0;
-}
-
-
-inline uint64_t Board::get_square(Board::square s){
-    return 1ULL << s;
-}
-
-Board::Board() : side(WHITE){
+Board::Board() : side(WHITE), table(Table::get_instance()){
     bitboards[ROOKS + WHITE] = get_square(a1) | get_square(h1);
     bitboards[ROOKS + BLACK] = get_square(a8) | get_square(h8);
 
@@ -386,16 +95,21 @@ Board::Board() : side(WHITE){
 
     bitboards[KNIGHTS + WHITE] = get_square(b1) | get_square(g1); 
     bitboards[KNIGHTS + BLACK] = get_square(b8) | get_square(g8);
+
+    bitboards[ALL] = 0;
+    for(int i = 0; i < 12; i++){
+        bitboards[ALL] |= bitboards[i];
+    }
 }
 
 uint64_t Board::check_pawn_move_white(uint64_t curr_board, uint64_t own_side, uint64_t other_side){
     uint64_t all_pieces = own_side | other_side;
 
     uint64_t move_forward = (curr_board << 8) & ~all_pieces;
-    uint64_t second_move = ((move_forward & mask_rank.at(3)) << 8) & ~all_pieces;
+    uint64_t second_move = ((move_forward & table.get_mask_rank(RANK_3)) << 8) & ~all_pieces;
 
-    uint64_t left_pawn_attack = curr_board & clear_file.at(FILE_A) << 7;
-    uint64_t right_pawn_attack = curr_board & clear_file.at(FILE_H) << 9;
+    uint64_t left_pawn_attack = curr_board & table.get_clear_file(FILE_A) << 7;
+    uint64_t right_pawn_attack = curr_board & table.get_clear_file(FILE_H) << 9;
 
     uint64_t all_pawn_attacks = left_pawn_attack | right_pawn_attack;
 
@@ -409,10 +123,10 @@ uint64_t Board::check_pawn_move_black(uint64_t curr_board, uint64_t own_side, ui
     uint64_t all_pieces = own_side | other_side;
 
     uint64_t move_forward = (curr_board >> 8) & ~all_pieces;
-    uint64_t second_move = ((move_forward & mask_rank.at(6)) >> 8) & ~all_pieces;
+    uint64_t second_move = ((move_forward & table.get_mask_rank(RANK_6)) >> 8) & ~all_pieces;
 
-    uint64_t left_pawn_attack = curr_board & clear_file.at(FILE_A) >> 9;
-    uint64_t right_pawn_attack = curr_board & clear_file.at(FILE_H) >> 7;
+    uint64_t left_pawn_attack = curr_board & table.get_clear_file(FILE_A) >> 9;
+    uint64_t right_pawn_attack = curr_board & table.get_clear_file(FILE_H) >> 7;
 
     uint64_t all_pawn_attacks = left_pawn_attack | right_pawn_attack;
 
@@ -430,11 +144,11 @@ uint64_t Board::check_knight_move(uint64_t curr_board, uint64_t own_side){
             5xxx6
             x7x8x    
     */
-    uint64_t mask_a = mask_file.at(FILE_A);
-    uint64_t mask_h = mask_file.at(FILE_H);
+    uint64_t mask_a = table.get_mask_file(FILE_A);
+    uint64_t mask_h = table.get_mask_file(FILE_H);
 
-    uint64_t mask_a_b = mask_file.at(FILE_A) & mask_file.at(FILE_B);
-    uint64_t mask_g_h = mask_file.at(FILE_B) & mask_file.at(FILE_H);
+    uint64_t mask_a_b = table.get_mask_file(FILE_A) & table.get_mask_file(FILE_B);
+    uint64_t mask_g_h = table.get_mask_file(FILE_B) & table.get_mask_file(FILE_H);
 
     uint64_t spot1 = mask_a << 15;
     uint64_t spot2 = mask_h << 17;
@@ -458,8 +172,8 @@ uint64_t Board::check_king_move(uint64_t curr_board, uint64_t own_side){
         4 k 5
         6 7 8
     */
-    uint64_t clear_file_h = curr_board & clear_file.at(FILE_H);
-    uint64_t clear_file_a = curr_board & clear_file.at(FILE_A);
+    uint64_t clear_file_h = curr_board & table.get_clear_file(FILE_H);
+    uint64_t clear_file_a = curr_board & table.get_clear_file(FILE_A);
 
     uint64_t spot1 = clear_file_a << 7;
     uint64_t spot2 = curr_board << 8;
@@ -475,16 +189,31 @@ uint64_t Board::check_king_move(uint64_t curr_board, uint64_t own_side){
     return (valid_spots & ~own_side);
 }
 
-uint64_t Board::check_bishop_move(uint64_t curr_board, uint64_t own_side){
-    return 0;
+uint64_t Board::check_bishop_move(square s){
+    uint64_t attack = table.bishop_attack_table[s];
+    int num_bits = count_bits(attack);
+    uint64_t occup = bitboards[ALL];
+
+    attack &= occup;
+    attack *= table.bishop_magics[s];
+    attack >>= (64 - num_bits);
+
+    return table.bishop_table[s][attack];   
 }
 
-uint64_t Board::check_queen_move(uint64_t curr_board, uint64_t own_side){
-    return 0;
+uint64_t Board::check_queen_move(square s){
+    return check_bishop_move(s) | check_rook_move(s);
 }
 
-uint64_t Board::check_rook_move(uint64_t curr_board, uint64_t own_side){
-    return 0;    
+uint64_t Board::check_rook_move(square s){
+    uint64_t attack = table.rook_attack_table[s];
+    int num_bits = count_bits(attack);
+    uint64_t occup = bitboards[ALL];
+
+    attack &= occup;
+    attack *= table.rook_magics[s];
+    attack >>= (64 - num_bits);
+    return table.rook_table[s][attack];   
 }
 
 void capture(){
@@ -538,7 +267,7 @@ void Board::update(const std::string &from, const std::string& target){
             }
             break;
         case BISHOPS:
-            validate = check_bishop_move(source_square, own_side);
+            validate = check_bishop_move(from_square);
             break;
         case KNIGHTS:
             validate = check_knight_move(source_square, own_side);
@@ -547,10 +276,10 @@ void Board::update(const std::string &from, const std::string& target){
             validate = check_king_move(source_square, own_side);
             break;
         case QUEEN:
-            validate = check_queen_move(source_square, own_side);
+            validate = check_queen_move(from_square);
             break;
         case ROOKS:
-            validate = check_rook_move(source_square, own_side);
+            validate = check_rook_move(from_square);
             break;
         case NUM_PIECES:
             //maybe just throw error...
@@ -571,6 +300,9 @@ void Board::update(const std::string &from, const std::string& target){
         //pop bit of source square and set bit for target square
         bitboards[curr + side] &= ~(source_square);
         bitboards[curr + side] |= target_square;
+
+        bitboards[ALL] &= ~(source_square);
+        bitboards[ALL] |= target_square;
     }
 }
 
@@ -606,9 +338,7 @@ void Board::debug(const std::string& square){
     //     uint64_t t = occupancy(i, rook);
     //     print_bitboard(t);
     // }
-
-    fill_magic_table_rook();
-    fill_magic_table_bishop();
+    print_bitboard(check_rook_move(a1));
 }
 
 
