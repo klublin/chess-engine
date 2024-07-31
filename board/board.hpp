@@ -25,6 +25,20 @@ a1, b1, c1, d1, e1, f1, g1, h1
 
 */
 
+/*
+    One probably no need to verify moves sent to the engine if using UCI. 
+
+    Then there is really only the need for updating, no checking involved at all!
+
+    1. en passent
+    2. checks
+    3. castling
+    4. capturing pieces 
+
+    then we can move onto the evaluation and generation
+
+*/
+
 class Board{
     enum color{
         WHITE = 0, 
@@ -66,6 +80,10 @@ class Board{
     uint64_t check_king_move(uint64_t, uint64_t);
     uint64_t check_rook_move(square);
     //todo add check(the chess one) boolean for both white and black maybe?
+    bool white_check;
+    bool black_check;
+
+    bool castling_rights;
 public:
     //friend std::ostream& operator<<(std::ostream& os, const Board&);
     void print();

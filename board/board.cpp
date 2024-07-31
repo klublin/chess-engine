@@ -172,21 +172,23 @@ uint64_t Board::check_king_move(uint64_t curr_board, uint64_t own_side){
         4 k 5
         6 7 8
     */
-    uint64_t clear_file_h = curr_board & table.get_clear_file(FILE_H);
-    uint64_t clear_file_a = curr_board & table.get_clear_file(FILE_A);
+    // uint64_t clear_file_h = curr_board & table.get_clear_file(FILE_H);
+    // uint64_t clear_file_a = curr_board & table.get_clear_file(FILE_A);
 
-    uint64_t spot1 = clear_file_a << 7;
-    uint64_t spot2 = curr_board << 8;
-    uint64_t spot3 = clear_file_h << 9;
-    uint64_t spot5 = clear_file_h << 1;
+    // uint64_t spot1 = clear_file_a << 7;
+    // uint64_t spot2 = curr_board << 8;
+    // uint64_t spot3 = clear_file_h << 9;
+    // uint64_t spot5 = clear_file_h << 1;
     
-    uint64_t spot4 = clear_file_a >> 1;
-    uint64_t spot6 = clear_file_a >> 9;
-    uint64_t spot7 = curr_board >> 8;
-    uint64_t spot8 = clear_file_h >> 7;
+    // uint64_t spot4 = clear_file_a >> 1;
+    // uint64_t spot6 = clear_file_a >> 9;
+    // uint64_t spot7 = curr_board >> 8;
+    // uint64_t spot8 = clear_file_h >> 7;
 
-    uint64_t valid_spots = spot1 | spot2 | spot3 | spot4 | spot5 | spot6 | spot7 | spot8;
-    return (valid_spots & ~own_side);
+    // uint64_t valid_spots = spot1 | spot2 | spot3 | spot4 | spot5 | spot6 | spot7 | spot8;
+    // return (valid_spots & ~own_side);
+
+    return (table.king_attack_table[curr_board] & ~own_side);
 }
 
 uint64_t Board::check_bishop_move(square s){
