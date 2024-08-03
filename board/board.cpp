@@ -193,12 +193,11 @@ uint64_t Board::check_king_move(uint64_t curr_board, uint64_t own_side){
 
 uint64_t Board::check_bishop_move(square s){
     uint64_t attack = table.bishop_attack_table[s];
-    int num_bits = count_bits(attack);
     uint64_t occup = bitboards[ALL];
 
     attack &= occup;
     attack *= table.bishop_magics[s];
-    attack >>= (64 - num_bits);
+    attack >>= (64 - table.bishop_occupancy_bits[s]);
 
     return table.bishop_table[s][attack];   
 }
@@ -209,12 +208,11 @@ uint64_t Board::check_queen_move(square s){
 
 uint64_t Board::check_rook_move(square s){
     uint64_t attack = table.rook_attack_table[s];
-    int num_bits = count_bits(attack);
+    print_bitboard(attack);
     uint64_t occup = bitboards[ALL];
-
     attack &= occup;
     attack *= table.rook_magics[s];
-    attack >>= (64 - num_bits);
+    attack >>= (64 - table.rook_occupancy_bits[s]);
     return table.rook_table[s][attack];   
 }
 
@@ -340,6 +338,7 @@ void Board::debug(const std::string& square){
     //     uint64_t t = occupancy(i, rook);
     //     print_bitboard(t);
     // }
+
     print_bitboard(check_rook_move(a1));
 }
 

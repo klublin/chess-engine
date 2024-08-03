@@ -1,28 +1,6 @@
 #include "tables.hpp"
 #include <iostream>
 
-static const std::array<int, 64> bishop_occupancy_bits{
-    6,5,5,5,5,5,5,6,
-    5,5,5,5,5,5,5,5,
-    5,5,7,7,7,7,5,5,
-    5,5,7,9,9,7,5,5,
-    5,5,7,9,9,7,5,5,
-    5,5,7,7,7,7,5,5,
-    5,5,5,5,5,5,5,5,
-    6,5,5,5,5,5,5,6,
-};
-
-static const std::array<int, 64> rook_occupancy_bits {
-    12,11,11,11,11,11,11,12,
-    11,10,10,10,10,10,10,11,
-    11,10,10,10,10,10,10,11,
-    11,10,10,10,10,10,10,11,
-    11,10,10,10,10,10,10,11,
-    11,10,10,10,10,10,10,11,
-    11,10,10,10,10,10,10,11,
-    12,11,11,11,11,11,11,12,
-};
-
 uint64_t Table::mask_rook_attack(square s){
     int file = s%8;
     int rank = s/8;
@@ -194,7 +172,7 @@ uint64_t Table::find_magic(square square, Table::piece p){
         if(count_bits((attack_mask * magic) & 0xFF00000000000000ULL) < 6){
             continue;
         }
-        used_attacks.fill(0);
+        used_attacks.fill(0ULL);
 
         bool fail = false;
 
@@ -217,12 +195,28 @@ uint64_t Table::find_magic(square square, Table::piece p){
     return 0;
 }
 
+// static void print_bitboard(uint64_t board){
+//     for(int i = 0; i < 8; i++){
+//         std::cout << (8 - i) << "   ";
+//         for(int j = 0; j < 8; j++){
+//             uint64_t mask = 1ULL << (i*8+j);
+//             std::cout << ((board & mask) != 0 ? '1' : '0') << " ";
+//         }
+//         std::cout << "\n";
+//     }
+//     std::cout << "\n    ";
+//     for(char c = 'a'; c <= 'h'; c++){
+//         std::cout << c << ' ';
+//     }
+//     std::cout << "\n";
+// }
+
 void Table::fill_magic_table_rook(){
     for(int i = a8; i <= h1; i++){
         uint64_t attack_mask = mask_rook_attack(static_cast<square>(i));
         rook_attack_table[i] = attack_mask;
 
-        int num_bits = count_bits(attack_mask);
+        int num_bits = rook_occupancy_bits[i];
         for(int index = 0; index < (1 << num_bits); index++){
             uint64_t occup = occupancy(index, attack_mask);
 
@@ -230,21 +224,24 @@ void Table::fill_magic_table_rook(){
 
             rook_table[i][magic_index] = mask_rook_attack_ray(static_cast<square>(i), occup);
         }
-    }
+    }  
 }
 
 void Table::fill_magic_table_bishop(){
     for(int i = a8; i <= h1; i++){
         uint64_t attack_mask = mask_bishop_attack(static_cast<square>(i));
-        rook_attack_table[i] = attack_mask;
+        if(i == a1){
+            //print_bitboard(attack_mask);
+        }
+        bishop_attack_table[i] = attack_mask;
 
-        int num_bits = count_bits(attack_mask);
+        int num_bits = bishop_occupancy_bits[i];
         for(int index = 0; index < (1 << num_bits); index++){
             uint64_t occup = occupancy(index, attack_mask);
         
             int magic_index = int((occup * rook_magics[i]) >> (64 - num_bits));
 
-            rook_table[i][magic_index] = mask_bishop_attack_ray(static_cast<square>(i), occup);
+            bishop_table[i][magic_index] = mask_bishop_attack_ray(static_cast<square>(i), occup);
         }
     }
 }
@@ -309,7 +306,7 @@ uint64_t Table::generate_knight(square s){
     return valid_spots;
 }
 
-void Table::init_leapers(){
+void Table::init_sliders(){
 
     for(int i = a8; i <= h1; i++){
         pawn_attack_table[WHITE_PAWNS][i] =  generate_pawn_white(static_cast<square>(i));
@@ -319,54 +316,8 @@ void Table::init_leapers(){
     }
 }
 
-Table::Table() : 
-clear_rank{
-    18446744073709551360ULL,
-    18446744073709486335ULL,
-    18446744073692839935ULL,
-    18446744069431361535ULL,
-    18446742978492891135ULL,
-    18446463698244468735ULL,
-    18374967954648334335ULL,
-    72057594037927935ULL,
-}, 
-mask_rank{
-    255ULL,
-    65280ULL,
-    16711680ULL,
-    4278190080ULL,
-    1095216660480ULL,
-    280375465082880ULL,
-    71776119061217280ULL,
-    18374686479671623680ULL,
-}, 
-clear_file{
-    18374403900871474942ULL,
-    18302063728033398269ULL,
-    18157383382357244923ULL,
-    17868022691004938231ULL,
-    17289301308300324847ULL,
-    16131858542891098079ULL,
-    13816973012072644543ULL,
-    9187201950435737471ULL,
-},
-mask_file{
-    72340172838076673ULL,
-    144680345676153346ULL,
-    289360691352306692ULL,
-    578721382704613384ULL,
-    1157442765409226768ULL,
-    2314885530818453536ULL,
-    4629771061636907072ULL,
-    9259542123273814144ULL,
-}{
-    
-    for(int i = a8; i <= h1; i++){
-        bishop_magics[i] = find_magic(static_cast<square>(i), BISHOP);
-        rook_magics[i] = find_magic(static_cast<square>(i), ROOK);
-    }
-
-    init_leapers();
+Table::Table(){
+    init_sliders();
     fill_magic_table_bishop();
     fill_magic_table_rook();
 }
