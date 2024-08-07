@@ -195,22 +195,6 @@ uint64_t Table::find_magic(square square, Table::piece p){
     return 0;
 }
 
-// static void print_bitboard(uint64_t board){
-//     for(int i = 0; i < 8; i++){
-//         std::cout << (8 - i) << "   ";
-//         for(int j = 0; j < 8; j++){
-//             uint64_t mask = 1ULL << (i*8+j);
-//             std::cout << ((board & mask) != 0 ? '1' : '0') << " ";
-//         }
-//         std::cout << "\n";
-//     }
-//     std::cout << "\n    ";
-//     for(char c = 'a'; c <= 'h'; c++){
-//         std::cout << c << ' ';
-//     }
-//     std::cout << "\n";
-// }
-
 void Table::fill_magic_table_rook(){
     for(int i = a8; i <= h1; i++){
         uint64_t attack_mask = mask_rook_attack(static_cast<square>(i));

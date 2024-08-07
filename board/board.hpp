@@ -44,8 +44,6 @@ class Board{
         WHITE = 0, 
         BLACK = 6
     };
-    color side;
-
     enum piece{
         PAWNS,
         KNIGHTS,
@@ -55,7 +53,18 @@ class Board{
         ROOKS,
         NUM_PIECES
     };
+
+    enum pieces{P,N,B,Q,K,R,p,n,b,q,k,r};
+
+    enum castling{
+        WK=1,
+        WQ=2,
+        BK=4,
+        BQ=8
+    };
+    color side;
     Table& table;
+    square enpessant;
 
     #define ALL 12
     //12 for all pieces and 1 for whole set
@@ -71,7 +80,8 @@ class Board{
 
     int which_piece(const uint64_t board);
 
-    //todo might need to change these function names tbh
+    //todo these might need to be deleted especially since we are planning on supportingUCI
+    //no need to check if move is valid at this point
     uint64_t check_pawn_move_white(uint64_t, uint64_t, uint64_t);
     uint64_t check_pawn_move_black(uint64_t, uint64_t, uint64_t);
     uint64_t check_knight_move(uint64_t, uint64_t);
@@ -79,6 +89,13 @@ class Board{
     uint64_t check_queen_move(square);
     uint64_t check_king_move(uint64_t, uint64_t);
     uint64_t check_rook_move(square);
+
+
+    static constexpr const std::array<char, 12> pieces = {'P', 'N', 'B', 'Q', 'K', 'R', 'p', 'n', 'b', 'q', 'k', 'r'};
+    void read_fen(const std::string&);
+    inline int check_is_piece(char c);
+    inline color which_side(char c);
+
     //todo add check(the chess one) boolean for both white and black maybe?
     bool white_check;
     bool black_check;

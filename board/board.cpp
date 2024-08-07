@@ -41,13 +41,13 @@ const std::unordered_map<int, char> Board::symbol_map = {
     {QUEEN, 'Q'},
     {KING, 'K'},
     {ROOKS, 'R'},
-    {PAWNS + BLACK, 'P'},
-    {KNIGHTS + BLACK, 'N'},
-    {BISHOPS + BLACK, 'B'},
-    {QUEEN + BLACK, 'Q'},
-    {KING + BLACK, 'K'},
-    {ROOKS + BLACK, 'R'},
-    {2*NUM_PIECES, ' '}
+    {PAWNS + BLACK, 'p'},
+    {KNIGHTS + BLACK, 'n'},
+    {BISHOPS + BLACK, 'b'},
+    {QUEEN + BLACK, 'q'},
+    {KING + BLACK, 'k'},
+    {ROOKS + BLACK, 'r'},
+    {2*NUM_PIECES, '.'}
 };
 
 const std::unordered_map<char, Board::piece> Board::reverse_symbol_map = {
@@ -72,34 +72,38 @@ void print_bitboard(uint64_t board){
     for(char c = 'a'; c <= 'h'; c++){
         std::cout << c << ' ';
     }
-    std::cout << "\n";
+    std::cout << board << "\n";
 }
 
-Board::Board() : side(WHITE), table(Table::get_instance()){
-    bitboards[ROOKS + WHITE] = get_square(a1) | get_square(h1);
-    bitboards[ROOKS + BLACK] = get_square(a8) | get_square(h8);
+Board::Board() : side(WHITE), table(Table::get_instance()), enpessant(none){
+    // bitboards[ROOKS + WHITE] = get_square(a1) | get_square(h1);
+    // bitboards[ROOKS + BLACK] = get_square(a8) | get_square(h8);
 
-    bitboards[BISHOPS + WHITE] = get_square(c1) | get_square(f1);
-    bitboards[BISHOPS + BLACK] = get_square(c8) | get_square(f8);
+    // bitboards[BISHOPS + WHITE] = get_square(c1) | get_square(f1);
+    // bitboards[BISHOPS + BLACK] = get_square(c8) | get_square(f8);
 
-    bitboards[PAWNS + WHITE] = get_square(a2) | get_square(b2) | get_square(c2) | get_square(d2) | 
-                            get_square(e2) | get_square(f2) | get_square(g2) | get_square(h2);
-    bitboards[PAWNS + BLACK] = get_square(a7) | get_square(b7) | get_square(c7) | get_square(d7) | 
-                            get_square(e7) | get_square(f7) | get_square(g7) | get_square(h7);
+    // bitboards[PAWNS + WHITE] = get_square(a2) | get_square(b2) | get_square(c2) | get_square(d2) | 
+    //                         get_square(e2) | get_square(f2) | get_square(g2) | get_square(h2);
+    // bitboards[PAWNS + BLACK] = get_square(a7) | get_square(b7) | get_square(c7) | get_square(d7) | 
+    //                         get_square(e7) | get_square(f7) | get_square(g7) | get_square(h7);
 
-    bitboards[QUEEN + WHITE] = get_square(d1);
-    bitboards[QUEEN + BLACK] = get_square(d8);
+    // bitboards[QUEEN + WHITE] = get_square(d1);
+    // bitboards[QUEEN + BLACK] = get_square(d8);
 
-    bitboards[KING + WHITE] = get_square(e1);
-    bitboards[KING + BLACK] = get_square(e8);
+    // bitboards[KING + WHITE] = get_square(e1);
+    // bitboards[KING + BLACK] = get_square(e8);
 
-    bitboards[KNIGHTS + WHITE] = get_square(b1) | get_square(g1); 
-    bitboards[KNIGHTS + BLACK] = get_square(b8) | get_square(g8);
+    // bitboards[KNIGHTS + WHITE] = get_square(b1) | get_square(g1); 
+    // bitboards[KNIGHTS + BLACK] = get_square(b8) | get_square(g8);
 
-    bitboards[ALL] = 0;
+    // bitboards[ALL] = 0;
+    // for(int i = 0; i < 12; i++){
+    //     bitboards[ALL] |= bitboards[i];
+    // }
     for(int i = 0; i < 12; i++){
-        bitboards[ALL] |= bitboards[i];
+        bitboards[i] = 0;
     }
+    bitboards[ALL] = 0;
 }
 
 uint64_t Board::check_pawn_move_white(uint64_t curr_board, uint64_t own_side, uint64_t other_side){
@@ -306,6 +310,60 @@ void Board::update(const std::string &from, const std::string& target){
     }
 }
 
+#define empty_board "8/8/8/8/8/8/8/8 w - - "
+#define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
+#define tricky_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
+#define killer_position "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1"
+#define cmk_position "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9 "
+
+
+inline int Board::check_is_piece(char c){
+    for(int i = 0; i < 12; i++){
+        if(pieces[i] == c){
+            return i;
+        }
+    }
+    return -1;
+}
+
+inline Board::color Board::which_side(char c){
+    char a = std::tolower(c);
+    
+    return a == c ? BLACK : WHITE;
+}
+
+void Board::read_fen(const std::string& fen){
+    //our enum square starts at a8, where the fen string starts
+    int index = 0;
+
+    for(int rank = 0; rank < 8; rank++){
+        for(int file = 0; file < 8; file++){
+            int square = rank * 8 + file;
+
+            int code = check_is_piece(fen[index]);
+            if(code != -1){
+                //color side = which_side(fen[index]);
+                bitboards[code] |= 1ULL << square;
+                bitboards[ALL] |= 1ULL << square;
+                index++;
+            }
+            else if(fen[index] == '/'){
+                //done with this rank
+                index++;
+                break;
+            }
+            else{
+                int incr = fen[index] - '0' - 1;
+                file += (incr);
+                index++;
+            }
+        }
+        if(fen[index] == '/'){
+            index++;
+        }
+    }
+}
+
 int Board::which_piece(const uint64_t square){
     for(int i = 0; i < 12; i++){
         if((bitboards[i] & square) != 0)
@@ -322,24 +380,24 @@ void Board::print(){
     }
 
     for(int i = 0; i < 8; i++){
+        std::cout << (8 - i) << "   ";
         for(int j = 0; j < 8; j++){
             uint64_t mask = 1ULL << (i*8+j);
             std::cout << symbol_map.at(which_piece(all_pieces & mask)) << " ";
         }
         std::cout << "\n";
     }
+
+    std::cout << "\n    ";
+    for(char c = 'a'; c <= 'h'; c++){
+        std::cout << c << ' ';
+    }
+    std::cout << "\n";
 }
 
 void Board::debug(const std::string& square){
-    
-    // uint64_t rook = mask_rook_attack(a1);
-    // print_bitboard(rook);
-    // for(int i = 0; i < 2; i++){
-    //     uint64_t t = occupancy(i, rook);
-    //     print_bitboard(t);
-    // }
-
-    print_bitboard(check_rook_move(a1));
+    read_fen(killer_position);
+    print();
 }
 
 
