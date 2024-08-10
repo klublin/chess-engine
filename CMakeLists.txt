@@ -6,5 +6,5 @@ add_executable(chess main.cpp)
 
 add_subdirectory(board)
 add_subdirectory(evaluation)
-add_subdirectory(generate)
+add_subdirectory(move_generation)
 add_subdirectory(search)

@@ -128,7 +128,7 @@ inline uint64_t Board::get_king_attack(square s){
 }
 
 uint64_t Board::get_bishop_attack(square s, uint64_t occup){
-    uint64_t attack = table.bishop_attack_table[s];
+    uint64_t attack = table.bishop_attack_table[s]; 
 
     attack &= occup;
     attack *= table.bishop_magics[s];
@@ -314,13 +314,5 @@ void Board::print(){
 
 void Board::debug(const std::string& square){
     //read_fen("8/8/8/3N4/8/8/8/8 w KQkq - 0 1 ");
-
-}
-
-
-int main(){
-    Board b;
-    std::string square;
-    b.debug(square);
 
 }
