@@ -35,11 +35,6 @@ a1, b1, c1, d1, e1, f1, g1, h1
 */
 
 class Board{
-    enum color{
-        WHITE = 0, 
-        BLACK=1,
-        BLACK_INDEX = 6
-    };
     enum piece{
         PAWNS,
         KNIGHTS,
@@ -49,7 +44,13 @@ class Board{
         ROOKS,
         NUM_PIECES
     };
+public:
 
+    enum color{
+        WHITE = 0, 
+        BLACK=1,
+        BLACK_INDEX = 6
+    };
     enum pieces{P,N,B,Q,K,R,p,n,b,q,k,r};
 
     enum castling{
@@ -100,7 +101,6 @@ class Board{
     bool black_check;
 
     bool attacked(square, color);
-public:
     //friend std::ostream& operator<<(std::ostream& os, const Board&);
     void print();
     Board();

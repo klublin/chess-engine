@@ -6,7 +6,5 @@
 class Engine{
     Board b;
 public:
-    std::string response(){
-        return "poopie butt";
-    };
+    
 };
