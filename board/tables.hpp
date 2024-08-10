@@ -20,6 +20,13 @@
 #define RANK_7 7
 #define RANK_8 8
 
+#define empty_board "8/8/8/8/8/8/8/8 w - - "
+#define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
+#define tricky_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
+#define killer_position "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1"
+#define cmk_position "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9 "
+
+
 enum square{
     a8, b8, c8, d8, e8, f8, g8, h8,
     a7, b7, c7, d7, e7, f7, g7, h7,
@@ -58,31 +65,31 @@ class Table{
     uint64_t generate_knight(square);
     void init_sliders();
 public:
-    const std::array<uint64_t, 8> clear_rank{
-        18446744073709551360ULL,
-        18446744073709486335ULL,
-        18446744073692839935ULL,
-        18446744069431361535ULL,
-        18446742978492891135ULL,
-        18446463698244468735ULL,
-        18374967954648334335ULL,
+    const std::array<uint64_t, 8> clear_rank = {
         72057594037927935ULL,
+        18374967954648334335ULL,
+        18446463698244468735ULL, 
+        18446742978492891135ULL, 
+        18446744069431361535ULL,
+        18446744073692839935ULL,
+        18446744073709486335ULL,
+        18446744073709551360ULL
     };
-    inline uint64_t get_clear_rank(int index){
-        return clear_rank[index - 1];
+    inline uint64_t get_clear_rank(int rank){
+        return clear_rank[rank - 1];
     }
-    const std::array<uint64_t, 8> mask_rank{
-        255ULL,
-        65280ULL,
-        16711680ULL,
-        4278190080ULL,
-        1095216660480ULL,
-        280375465082880ULL,
-        71776119061217280ULL,
+    const std::array<uint64_t, 8> mask_rank = {
         18374686479671623680ULL,
+        71776119061217280ULL,
+        280375465082880ULL,
+        1095216660480ULL,
+        4278190080ULL,
+        16711680ULL,
+        65280ULL,
+        255ULL
     };
-    inline uint64_t get_mask_rank(int index){
-        return clear_rank[index - 1];
+    inline uint64_t get_mask_rank(int rank){
+        return mask_rank[rank - 1];
     }
     const std::array<uint64_t, 8> clear_file{
         18374403900871474942ULL,
@@ -94,8 +101,8 @@ public:
         13816973012072644543ULL,
         9187201950435737471ULL,
     };
-    inline uint64_t get_clear_file(int index){
-        return clear_file[index - 1];
+    inline uint64_t get_clear_file(char file){
+        return clear_file[file - 'a'];
     }
     const std::array<uint64_t, 8> mask_file{
         72340172838076673ULL,
@@ -107,8 +114,8 @@ public:
         4629771061636907072ULL,
         9259542123273814144ULL,
     };
-    inline uint64_t get_mask_file(int index){
-        return mask_file[index - 1];
+    inline uint64_t get_mask_file(char file){
+        return mask_file[file - 'a'];
     }
 
     #define WHITE_PAWNS 0

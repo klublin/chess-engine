@@ -28,12 +28,7 @@ a1, b1, c1, d1, e1, f1, g1, h1
 /*
     One probably no need to verify moves sent to the engine if using UCI. 
 
-    Then there is really only the need for updating, no checking involved at all!
-
-    1. en passent
-    2. checks
-    3. castling
-    4. capturing pieces 
+    capturing pieces 
 
     then we can move onto the evaluation and generation
 
@@ -42,7 +37,8 @@ a1, b1, c1, d1, e1, f1, g1, h1
 class Board{
     enum color{
         WHITE = 0, 
-        BLACK = 6
+        BLACK=1,
+        BLACK_INDEX = 6
     };
     enum piece{
         PAWNS,
@@ -57,6 +53,7 @@ class Board{
     enum pieces{P,N,B,Q,K,R,p,n,b,q,k,r};
 
     enum castling{
+        NONE=0,
         WK=1,
         WQ=2,
         BK=4,
@@ -65,12 +62,17 @@ class Board{
     color side;
     Table& table;
     square enpessant;
+    int castling_rights;
 
-    #define ALL 12
     //12 for all pieces and 1 for whole set
-    uint64_t bitboards[13];
+    std::array<uint64_t, 12> bitboards;
 
-    const static std::unordered_map<std::string, square> square_map;
+    #define OCCUP_WHITE 0
+    #define OCCUP_BLACK 1
+    #define OCCUP_ALL 2
+    std::array<uint64_t, 3> occup;
+
+    const static std::array<std::string, 64> square_map;
 
     //these maps may be better suited as arrays? Maybe cahnge for later when runtime becomes an issue
     // const static std::unordered_map<std::string, uint64_t> square_to_num;
@@ -80,27 +82,24 @@ class Board{
 
     int which_piece(const uint64_t board);
 
-    //todo these might need to be deleted especially since we are planning on supportingUCI
-    //no need to check if move is valid at this point
-    uint64_t check_pawn_move_white(uint64_t, uint64_t, uint64_t);
-    uint64_t check_pawn_move_black(uint64_t, uint64_t, uint64_t);
-    uint64_t check_knight_move(uint64_t, uint64_t);
-    uint64_t check_bishop_move(square);
-    uint64_t check_queen_move(square);
-    uint64_t check_king_move(uint64_t, uint64_t);
-    uint64_t check_rook_move(square);
-
+    //sliders
+    uint64_t get_pawn_attack_white(square);
+    uint64_t get_pawn_attack_black(square);
+    uint64_t get_knight_attack(square);
+    uint64_t get_king_attack(square);
+    //non sliders
+    uint64_t get_bishop_attack(square, uint64_t);
+    uint64_t get_queen_attack(square, uint64_t);
+    uint64_t get_rook_attack(square, uint64_t);
 
     static constexpr const std::array<char, 12> pieces = {'P', 'N', 'B', 'Q', 'K', 'R', 'p', 'n', 'b', 'q', 'k', 'r'};
     void read_fen(const std::string&);
     inline int check_is_piece(char c);
-    inline color which_side(char c);
-
     //todo add check(the chess one) boolean for both white and black maybe?
     bool white_check;
     bool black_check;
 
-    bool castling_rights;
+    bool attacked(square, color);
 public:
     //friend std::ostream& operator<<(std::ostream& os, const Board&);
     void print();

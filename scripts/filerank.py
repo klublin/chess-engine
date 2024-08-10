@@ -21,19 +21,19 @@ for letter in letters:
 rank_num = np.uint64(0xFF)
 
 for i in range(1, 9):
-    clear_rank[i] = ~rank_num
-    mask_rank[i] = rank_num 
+    clear_rank[9-i] = ~rank_num
+    mask_rank[9-i] = rank_num 
     rank_num <<= 8
 
 
 print('const std::unordered_map<char, uint64_t> Board::clear_rank{')
-for key, val in clear_rank.items():
+for key, val in reversed(clear_rank.items()):
     s = '    {' + str(key) + ',' + str(val) + 'ULL},'
     print(s)
 print('};')
 
 print('const std::unordered_map<char, uint64_t> Board::mask_rank{')
-for key, val in mask_rank.items():
+for key, val in reversed(mask_rank.items()):
     s = '    {' + str(key) + ',' + str(val) + 'ULL},'
     print(s)
 print('};')

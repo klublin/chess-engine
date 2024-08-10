@@ -233,8 +233,8 @@ void Table::fill_magic_table_bishop(){
 uint64_t Table::generate_pawn_white(square s){
     uint64_t board = get_square(s);
 
-    uint64_t left_pawn_attack = (board & get_clear_file(FILE_A)) << 7;
-    uint64_t right_pawn_attack = (board & get_clear_file(FILE_H)) << 9;
+    uint64_t left_pawn_attack = (board & get_clear_file(FILE_A)) >> 9;
+    uint64_t right_pawn_attack = (board & get_clear_file(FILE_H)) >> 7;
 
     return left_pawn_attack | right_pawn_attack;
 }
@@ -242,8 +242,8 @@ uint64_t Table::generate_pawn_white(square s){
 uint64_t Table::generate_pawn_black(square s){
     uint64_t board = get_square(s);
 
-    uint64_t left_pawn_attack = (board & get_clear_file(FILE_A)) >> 9;
-    uint64_t right_pawn_attack = (board & get_clear_file(FILE_H)) >> 7;
+    uint64_t left_pawn_attack = (board & get_clear_file(FILE_A)) << 7;
+    uint64_t right_pawn_attack = (board & get_clear_file(FILE_H)) << 9;
 
     return left_pawn_attack | right_pawn_attack;
 }
@@ -269,21 +269,31 @@ uint64_t Table::generate_king(square s){
 }
 
 uint64_t Table::generate_knight(square s){
-    uint64_t mask_a = get_mask_file(FILE_A);
-    uint64_t mask_h = get_mask_file(FILE_H);
+    /*
+        knight has 8 spots to move to
+            x1x2x  
+            3xxx4  
+            xxNxx
+            5xxx6
+            x7x8x    
+    */
+    uint64_t curr_board = get_square(s);
 
-    uint64_t mask_a_b = get_mask_file(FILE_A) & get_mask_file(FILE_B);
-    uint64_t mask_g_h = get_mask_file(FILE_B) & get_mask_file(FILE_H);
+    uint64_t mask_a = get_clear_file(FILE_A);
+    uint64_t mask_h = get_clear_file(FILE_H);
 
-    uint64_t spot1 = mask_a << 15;
-    uint64_t spot2 = mask_h << 17;
-    uint64_t spot3 = mask_a_b << 6;
-    uint64_t spot4 = mask_g_h << 10;
+    uint64_t mask_a_b = get_clear_file(FILE_A) & get_clear_file(FILE_B);
+    uint64_t mask_g_h = get_clear_file(FILE_G) & get_clear_file(FILE_H);
 
-    uint64_t spot5 = mask_a_b >> 10;
-    uint64_t spot6 = mask_g_h >> 6;
-    uint64_t spot7 = mask_a >> 17;
-    uint64_t spot8 = mask_h >> 15;
+    uint64_t spot1 = (curr_board & mask_a) >> 17;
+    uint64_t spot2 = (curr_board & mask_h) >> 15;
+    uint64_t spot3 = (curr_board & mask_a_b) >> 10;
+    uint64_t spot4 = (curr_board & mask_g_h) >> 6;
+
+    uint64_t spot5 = (curr_board & mask_a_b) << 6;
+    uint64_t spot6 = (curr_board & mask_g_h) << 10;
+    uint64_t spot7 = (curr_board & mask_a) << 15;
+    uint64_t spot8 = (curr_board & mask_h) << 17;
 
     uint64_t valid_spots = spot1 | spot2 | spot3 | spot4 | spot5 | spot6 | spot7 | spot8;
 

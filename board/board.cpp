@@ -1,5 +1,6 @@
 #include "board.hpp"
 #include <iostream>
+#include <cassert>
 
 // const std::unordered_map<std::string, uint64_t> Board::square_to_num = {
 //     {"A1", 1}, {"B1", 2}, {"C1", 4}, {"D1", 8}, {"E1", 16}, {"F1", 32}, {"G1", 64}, {"H1", 128},
@@ -23,15 +24,15 @@
 //     {72057594037927936, "A8"}, {144115188075855872, "B8"}, {288230376151711744, "C8"}, {576460752303423488, "D8"}, {1152921504606846976, "E8"}, {2305843009213693952, "F8"}, {4611686018427387904, "G8"}, {9223372036854775808ULL, "H8"}
 // };
 
-const std::unordered_map<std::string, square> Board::square_map{
-    {"a1",a1}, {"a2",a2}, {"a3",a3}, {"a4",a4}, {"a5",a5}, {"a6",a6}, {"a7",a7}, {"a8",a8}, 
-    {"b1",b1}, {"b2",b2}, {"b3",b3}, {"b4",b4}, {"b5",b5}, {"b6",b6}, {"b7",b7}, {"b8",b8}, 
-    {"c1",c1}, {"c2",c2}, {"c3",c3}, {"c4",c4}, {"c5",c5}, {"c6",c6}, {"c7",c7}, {"c8",c8}, 
-    {"d1",d1}, {"d2",d2}, {"d3",d3}, {"d4",d4}, {"d5",d5}, {"d6",d6}, {"d7",d7}, {"d8",d8}, 
-    {"e1",e1}, {"e2",e2}, {"e3",e3}, {"e4",e4}, {"e5",e5}, {"e6",e6}, {"e7",e7}, {"e8",e8}, 
-    {"f1",f1}, {"f2",f2}, {"f3",f3}, {"f4",f4}, {"f5",f5}, {"f6",f6}, {"f7",f7}, {"f8",f8}, 
-    {"g1",g1}, {"g2",g2}, {"g3",g3}, {"g4",g4}, {"g5",g5}, {"g6",g6}, {"g7",g7}, {"g8",g8}, 
-    {"h1",h1}, {"h2",h2}, {"h3",h3}, {"h4",h4}, {"h5",h5}, {"h6",h6}, {"h7",h7}, {"h8",h8}, 
+const std::array<std::string, 64> Board::square_map = {
+    "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
+    "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
+    "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
+    "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
+    "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
+    "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
+    "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
+    "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1"
 };
 
 const std::unordered_map<int, char> Board::symbol_map = {
@@ -41,12 +42,12 @@ const std::unordered_map<int, char> Board::symbol_map = {
     {QUEEN, 'Q'},
     {KING, 'K'},
     {ROOKS, 'R'},
-    {PAWNS + BLACK, 'p'},
-    {KNIGHTS + BLACK, 'n'},
-    {BISHOPS + BLACK, 'b'},
-    {QUEEN + BLACK, 'q'},
-    {KING + BLACK, 'k'},
-    {ROOKS + BLACK, 'r'},
+    {PAWNS + BLACK_INDEX, 'p'},
+    {KNIGHTS + BLACK_INDEX, 'n'},
+    {BISHOPS + BLACK_INDEX, 'b'},
+    {QUEEN + BLACK_INDEX, 'q'},
+    {KING + BLACK_INDEX, 'k'},
+    {ROOKS + BLACK_INDEX, 'r'},
     {2*NUM_PIECES, '.'}
 };
 
@@ -100,104 +101,34 @@ Board::Board() : side(WHITE), table(Table::get_instance()), enpessant(none){
     // for(int i = 0; i < 12; i++){
     //     bitboards[ALL] |= bitboards[i];
     // }
+
     for(int i = 0; i < 12; i++){
         bitboards[i] = 0;
     }
-    bitboards[ALL] = 0;
-}
-
-uint64_t Board::check_pawn_move_white(uint64_t curr_board, uint64_t own_side, uint64_t other_side){
-    uint64_t all_pieces = own_side | other_side;
-
-    uint64_t move_forward = (curr_board << 8) & ~all_pieces;
-    uint64_t second_move = ((move_forward & table.get_mask_rank(RANK_3)) << 8) & ~all_pieces;
-
-    uint64_t left_pawn_attack = curr_board & table.get_clear_file(FILE_A) << 7;
-    uint64_t right_pawn_attack = curr_board & table.get_clear_file(FILE_H) << 9;
-
-    uint64_t all_pawn_attacks = left_pawn_attack | right_pawn_attack;
-
-    uint64_t valid_moves = move_forward | second_move | (all_pawn_attacks & other_side);
-
-    return valid_moves;
-
-}
-
-uint64_t Board::check_pawn_move_black(uint64_t curr_board, uint64_t own_side, uint64_t other_side){
-    uint64_t all_pieces = own_side | other_side;
-
-    uint64_t move_forward = (curr_board >> 8) & ~all_pieces;
-    uint64_t second_move = ((move_forward & table.get_mask_rank(RANK_6)) >> 8) & ~all_pieces;
-
-    uint64_t left_pawn_attack = curr_board & table.get_clear_file(FILE_A) >> 9;
-    uint64_t right_pawn_attack = curr_board & table.get_clear_file(FILE_H) >> 7;
-
-    uint64_t all_pawn_attacks = left_pawn_attack | right_pawn_attack;
-
-    uint64_t valid_moves = move_forward | second_move | (all_pawn_attacks & other_side);
-
-    return valid_moves;
-}
-
-uint64_t Board::check_knight_move(uint64_t curr_board, uint64_t own_side){
-    /*
-        knight has 8 spots to move to
-            x1x2x  
-            3xxx4  
-            xxNxx
-            5xxx6
-            x7x8x    
-    */
-    uint64_t mask_a = table.get_mask_file(FILE_A);
-    uint64_t mask_h = table.get_mask_file(FILE_H);
-
-    uint64_t mask_a_b = table.get_mask_file(FILE_A) & table.get_mask_file(FILE_B);
-    uint64_t mask_g_h = table.get_mask_file(FILE_B) & table.get_mask_file(FILE_H);
-
-    uint64_t spot1 = mask_a << 15;
-    uint64_t spot2 = mask_h << 17;
-    uint64_t spot3 = mask_a_b << 6;
-    uint64_t spot4 = mask_g_h << 10;
-
-    uint64_t spot5 = mask_a_b >> 10;
-    uint64_t spot6 = mask_g_h >> 6;
-    uint64_t spot7 = mask_a >> 17;
-    uint64_t spot8 = mask_h >> 15;
-
-    uint64_t valid_spots = spot1 | spot2 | spot3 | spot4 | spot5 | spot6 | spot7 | spot8;
-
-    return (valid_spots & ~own_side);
-}
-
-uint64_t Board::check_king_move(uint64_t curr_board, uint64_t own_side){
-    /*
-        king has 8 spots to move to
-        1 2 3 
-        4 k 5
-        6 7 8
-    */
-    // uint64_t clear_file_h = curr_board & table.get_clear_file(FILE_H);
-    // uint64_t clear_file_a = curr_board & table.get_clear_file(FILE_A);
-
-    // uint64_t spot1 = clear_file_a << 7;
-    // uint64_t spot2 = curr_board << 8;
-    // uint64_t spot3 = clear_file_h << 9;
-    // uint64_t spot5 = clear_file_h << 1;
     
-    // uint64_t spot4 = clear_file_a >> 1;
-    // uint64_t spot6 = clear_file_a >> 9;
-    // uint64_t spot7 = curr_board >> 8;
-    // uint64_t spot8 = clear_file_h >> 7;
-
-    // uint64_t valid_spots = spot1 | spot2 | spot3 | spot4 | spot5 | spot6 | spot7 | spot8;
-    // return (valid_spots & ~own_side);
-
-    return (table.king_attack_table[curr_board] & ~own_side);
+    for(int i = 0; i < 3; i++){
+        occup[i] = 0;
+    }
 }
 
-uint64_t Board::check_bishop_move(square s){
+inline uint64_t Board::get_pawn_attack_white(square s){
+    return table.pawn_attack_table[WHITE][s];
+}
+
+inline uint64_t Board::get_pawn_attack_black(square s){
+    return table.pawn_attack_table[BLACK][s];
+}
+
+inline uint64_t Board::get_knight_attack(square s){
+    return table.knight_attack_table[s];
+}
+
+inline uint64_t Board::get_king_attack(square s){
+    return table.king_attack_table[s];
+}
+
+uint64_t Board::get_bishop_attack(square s, uint64_t occup){
     uint64_t attack = table.bishop_attack_table[s];
-    uint64_t occup = bitboards[ALL];
 
     attack &= occup;
     attack *= table.bishop_magics[s];
@@ -206,116 +137,52 @@ uint64_t Board::check_bishop_move(square s){
     return table.bishop_table[s][attack];   
 }
 
-uint64_t Board::check_queen_move(square s){
-    return check_bishop_move(s) | check_rook_move(s);
-}
-
-uint64_t Board::check_rook_move(square s){
+uint64_t Board::get_rook_attack(square s, uint64_t occup){
     uint64_t attack = table.rook_attack_table[s];
-    print_bitboard(attack);
-    uint64_t occup = bitboards[ALL];
     attack &= occup;
     attack *= table.rook_magics[s];
     attack >>= (64 - table.rook_occupancy_bits[s]);
     return table.rook_table[s][attack];   
 }
 
+uint64_t Board::get_queen_attack(square s, uint64_t occup){
+    return get_rook_attack(s, occup) | get_bishop_attack(s, occup);
+}
+
 void capture(){
 
 }
 
-void Board::update(const std::string &from, const std::string& target){
-    piece curr;
-    color opp;
+void make_move(){
     
-    square from_square = square_map.at(from);
-    square t = square_map.at(target);
-
-    curr = reverse_symbol_map.at(symbol_map.at(which_piece(1 << from_square)));
-
-    uint64_t target_square = 1 << t;
-    uint64_t source_square = 1 << from_square;
-
-    uint64_t own_side = 0;
-    uint64_t other_side = 0;
-
-    if(side == WHITE){
-        opp = BLACK;
-    }
-    else{
-        opp = WHITE;
-    }
-
-    uint64_t curr_board = bitboards[curr + side];
-
-    if((curr_board & source_square) == 0){
-        //the piece isn't even there!
-        //need error code. 
-        return;
-    }
-
-    for(int i = WHITE; i < NUM_PIECES; i++){
-       own_side |= bitboards[i + side];
-       other_side |= bitboards[i + opp];
-    }
-
-    uint64_t validate = 0;
-    
-    switch(curr){
-        case PAWNS:
-            if(side == WHITE){
-                validate = check_pawn_move_white(source_square, own_side, other_side);
-            }
-            else{
-                validate = check_pawn_move_black(source_square, own_side, other_side);
-            }
-            break;
-        case BISHOPS:
-            validate = check_bishop_move(from_square);
-            break;
-        case KNIGHTS:
-            validate = check_knight_move(source_square, own_side);
-            break;
-        case KING:
-            validate = check_king_move(source_square, own_side);
-            break;
-        case QUEEN:
-            validate = check_queen_move(from_square);
-            break;
-        case ROOKS:
-            validate = check_rook_move(from_square);
-            break;
-        case NUM_PIECES:
-            //maybe just throw error...
-            break;
-    }
-
-    //TODO: change to error code so user knows to input again
-    if((validate & target_square) == 0){
-        std::cout << "error\n";
-        return;
-    }
-
-    //todo figure out captures(probably easy), need checks as well
-    if((target_square & other_side)!= 0){
-        capture();
-    }
-    else{
-        //pop bit of source square and set bit for target square
-        bitboards[curr + side] &= ~(source_square);
-        bitboards[curr + side] |= target_square;
-
-        bitboards[ALL] &= ~(source_square);
-        bitboards[ALL] |= target_square;
-    }
 }
 
-#define empty_board "8/8/8/8/8/8/8/8 w - - "
-#define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
-#define tricky_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
-#define killer_position "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1"
-#define cmk_position "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9 "
+//checks if current square is attacked by given by the side 
+bool Board::attacked(square s, color side){
+    if((side == WHITE) && (get_pawn_attack_black(s) & bitboards[P])) return true;
+    
+    //we wonder if the current square is being attacked by a black pawn. White pawns attack looks something like:
+    /*
+        1 0 1
+        0 P 0
+        if we have a black pawn on any of those attack squares then it means that there is a black pawn attacking the current square
+    */
+    if((side == BLACK && (get_pawn_attack_white(s) & bitboards[p]))) return true;
 
+    if(get_knight_attack(s) & (side == WHITE ? bitboards[N] : bitboards[n])) return true;
+
+    
+    if(get_king_attack(s) & (side == WHITE ? bitboards[K] : bitboards[k])) return true;
+
+    
+    if(get_bishop_attack(s, occup[OCCUP_ALL]) & (side == WHITE ? bitboards[B] : bitboards[b])) return true;
+
+    
+    if(get_rook_attack(s, occup[OCCUP_ALL]) & (side == WHITE ? bitboards[R] : bitboards[r])) return true;
+
+    //no queen because the previous two already checked for this
+    return false;
+}
 
 inline int Board::check_is_piece(char c){
     for(int i = 0; i < 12; i++){
@@ -325,43 +192,58 @@ inline int Board::check_is_piece(char c){
     }
     return -1;
 }
-
-inline Board::color Board::which_side(char c){
-    char a = std::tolower(c);
-    
-    return a == c ? BLACK : WHITE;
-}
-
 void Board::read_fen(const std::string& fen){
     //our enum square starts at a8, where the fen string starts
     int index = 0;
 
-    for(int rank = 0; rank < 8; rank++){
-        for(int file = 0; file < 8; file++){
-            int square = rank * 8 + file;
-
-            int code = check_is_piece(fen[index]);
-            if(code != -1){
-                //color side = which_side(fen[index]);
-                bitboards[code] |= 1ULL << square;
-                bitboards[ALL] |= 1ULL << square;
-                index++;
-            }
-            else if(fen[index] == '/'){
-                //done with this rank
-                index++;
-                break;
-            }
-            else{
-                int incr = fen[index] - '0' - 1;
-                file += (incr);
-                index++;
-            }
+    for(int square = 0; square < 64; index++){
+        int code = check_is_piece(fen[index]);
+        
+        if(code!= -1){
+            bitboards[code] |= 1ULL << square;
+            square++;
         }
-        if(fen[index] == '/'){
-            index++;
+        else if(fen[index] >= '1' && fen[index] <= '8'){
+            square += (fen[index] - '0');
         }
     }
+    //should be a space now
+    assert(fen[index] == ' ');
+    index++;
+
+    side = fen[index] == 'w' ? WHITE : BLACK;
+    index+=2;
+
+    //we are now at the castling
+    while(fen[index]!= ' '){
+        switch(fen[index]){
+            case 'K': castling_rights |= WK; break;
+            case 'Q': castling_rights |= WQ; break;
+            case 'k': castling_rights |= BK; break;
+            case 'q': castling_rights |= BQ; break;
+            default: break;
+        }
+        index++;
+    }
+    index++;
+
+    //en passant square
+    if(fen[index] == '-'){
+        enpessant = none;
+    }
+    else{
+        int file = fen[index++] - 'a';
+        int rank = 8 - (fen[index] - '0');
+        int s = rank * 8 + file;
+
+        enpessant = static_cast<square>(s);
+    }
+
+    for(int i = 0; i < NUM_PIECES; i++){
+        occup[OCCUP_WHITE] |= bitboards[i];
+        occup[OCCUP_BLACK] |= bitboards[i + BLACK_INDEX];
+    }
+    occup[OCCUP_ALL] = occup[OCCUP_WHITE] | occup[OCCUP_BLACK];
 }
 
 int Board::which_piece(const uint64_t square){
@@ -376,7 +258,7 @@ void Board::print(){
     uint64_t all_pieces = 0;
 
     for(int i = WHITE; i < NUM_PIECES; i++){
-        all_pieces |= (bitboards[i] | bitboards[i + BLACK]);
+        all_pieces |= (bitboards[i] | bitboards[i + BLACK_INDEX]);
     }
 
     for(int i = 0; i < 8; i++){
@@ -393,18 +275,52 @@ void Board::print(){
         std::cout << c << ' ';
     }
     std::cout << "\n";
+
+    if(castling_rights & WK){
+        std::cout << 'K';
+    }
+    else{
+        std::cout << '-';
+    }
+
+    if(castling_rights & WQ){
+        std::cout << 'Q';
+    }
+    else{
+        std::cout << '-';
+    }
+
+    if(castling_rights & BK){
+        std::cout << 'k';
+    }
+    else{
+        std::cout << '-';
+    }
+
+    if(castling_rights & BQ){
+        std::cout << 'q';
+    }
+    else{
+        std::cout << '-';
+    }
+    std::cout << "\n";
+    if(enpessant!= none){
+        std::cout << square_map[enpessant] << "\n";
+    }
+    else{
+        std::cout << "-\n";
+    }
 }
 
 void Board::debug(const std::string& square){
-    read_fen(killer_position);
-    print();
+    //read_fen("8/8/8/3N4/8/8/8/8 w KQkq - 0 1 ");
+
 }
 
 
 int main(){
     Board b;
     std::string square;
-
     b.debug(square);
 
 }
