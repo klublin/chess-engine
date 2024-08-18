@@ -1,5 +1,6 @@
-#include "tables.hpp"
 #include <iostream>
+#include "tables.hpp"
+
 
 uint64_t Table::mask_rook_attack(square s){
     int file = s%8;
@@ -33,22 +34,22 @@ uint64_t Table::mask_rook_attack_ray(square s, uint64_t blockers){
     uint64_t attack_map = 0;
     
     //RIGHT
-    for(int r = rank, c = file + 1; c < RANK_7; c++){
+    for(int r = rank, c = file + 1; c <= RANK_7; c++){
         attack_map |= 1ULL << (r*8 + c); 
         if(blockers & (1ULL << (r* 8 + c))) break;
     }
     //up
-    for(int r = rank + 1, c = file; r < RANK_7; r++){
+    for(int r = rank + 1, c = file; r <= RANK_7; r++){
         attack_map |= 1ULL << (r * 8 + c);
         if(blockers & (1ULL << (r* 8 + c))) break;
     }
     //LEFT
-    for(int r = rank, c = file - 1; c > 0 ; c--){
+    for(int r = rank, c = file - 1; c >= 0 ; c--){
         attack_map |= 1ULL << (r * 8 + c);
         if(blockers & (1ULL << (r* 8 + c))) break;
     }
     //down
-    for(int r = rank - 1, c = file; r > 0; r--){
+    for(int r = rank - 1, c = file; r >= 0; r--){
         attack_map |= 1ULL << (r * 8 + c);
         if(blockers & (1ULL << (r* 8 + c))) break;
     }
@@ -90,25 +91,25 @@ uint64_t Table::mask_bishop_attack_ray(square s, uint64_t blockers){
     uint64_t attack_map = 0;
     
     //up diagonal RIGHT
-    for(int r = rank + 1, c = file + 1; r < RANK_7 && c < RANK_7; r++, c++){
+    for(int r = rank + 1, c = file + 1; r <= RANK_7 && c <= RANK_7; r++, c++){
         attack_map |= 1ULL << (r*8 + c); 
         if(blockers & (1ULL << (r* 8 + c))) break;
     }
 
     //DOWN DIAGONAL RIGHT
-    for(int r = rank - 1, c = file + 1; c < RANK_7 && r > 0; r--, c++){
+    for(int r = rank - 1, c = file + 1; c <= RANK_7 && r >= 0; r--, c++){
         attack_map |= 1ULL << (r * 8 + c);
         if(blockers & (1ULL << (r* 8 + c))) break;
     }
 
     //LEFT DIAGONAL UP
-    for(int r = rank + 1, c = file  - 1; c > 0 && r < RANK_7; c--, r++){
+    for(int r = rank + 1, c = file  - 1; c >= 0 && r <= RANK_7; c--, r++){
         attack_map |= 1ULL << (r * 8 + c);
         if(blockers & (1ULL << (r* 8 + c))) break;
     }
 
     //LEFT DIAGONAL DOWN
-    for(int r = rank - 1, c = file - 1; c > 0 && r > 0; r--, c--){
+    for(int r = rank - 1, c = file - 1; c >= 0 && r >= 0; r--, c--){
         attack_map |= 1ULL << (r * 8 + c);
         if(blockers & (1ULL << (r* 8 + c))) break;
     }
@@ -124,13 +125,6 @@ uint64_t Table::random_num() {
 
 uint64_t Table::generate_magic_nums() {
   return random_num() & random_num() & random_num();
-}
-
-inline int get_lsb_index(uint64_t num){
-    if(num){
-        return count_bits((num & -num) - 1);
-    }
-    return -1;
 }
 
 //index here is the configuration for a certain attack_mask
@@ -150,7 +144,7 @@ uint64_t occupancy(int index, uint64_t attack_mask){
     return occup_map;
 }
 
-uint64_t Table::find_magic(square square, Table::piece p){
+uint64_t Table::find_magic(square square, piece_type p){
     std::array<uint64_t, 4096> occupancies;
     std::array<uint64_t, 4096> attacks;
     std::array<uint64_t, 4096> used_attacks;
@@ -198,7 +192,7 @@ uint64_t Table::find_magic(square square, Table::piece p){
 void Table::fill_magic_table_rook(){
     for(int i = a8; i <= h1; i++){
         uint64_t attack_mask = mask_rook_attack(static_cast<square>(i));
-        rook_attack_table[i] = attack_mask;
+        attacks[ROOK][i] = attack_mask;
 
         int num_bits = rook_occupancy_bits[i];
         for(int index = 0; index < (1 << num_bits); index++){
@@ -217,13 +211,13 @@ void Table::fill_magic_table_bishop(){
         if(i == a1){
             //print_bitboard(attack_mask);
         }
-        bishop_attack_table[i] = attack_mask;
+        attacks[BISHOP][i] = attack_mask;
 
         int num_bits = bishop_occupancy_bits[i];
         for(int index = 0; index < (1 << num_bits); index++){
             uint64_t occup = occupancy(index, attack_mask);
         
-            int magic_index = int((occup * rook_magics[i]) >> (64 - num_bits));
+            int magic_index = int((occup * bishop_magics[i]) >> (64 - num_bits));
 
             bishop_table[i][magic_index] = mask_bishop_attack_ray(static_cast<square>(i), occup);
         }
@@ -233,8 +227,8 @@ void Table::fill_magic_table_bishop(){
 uint64_t Table::generate_pawn_white(square s){
     uint64_t board = get_square(s);
 
-    uint64_t left_pawn_attack = (board & get_clear_file(FILE_A)) >> 9;
-    uint64_t right_pawn_attack = (board & get_clear_file(FILE_H)) >> 7;
+    uint64_t left_pawn_attack = (board & clear_file[FILE_A]) >> 9;
+    uint64_t right_pawn_attack = (board & clear_file[FILE_H]) >> 7;
 
     return left_pawn_attack | right_pawn_attack;
 }
@@ -242,8 +236,8 @@ uint64_t Table::generate_pawn_white(square s){
 uint64_t Table::generate_pawn_black(square s){
     uint64_t board = get_square(s);
 
-    uint64_t left_pawn_attack = (board & get_clear_file(FILE_A)) << 7;
-    uint64_t right_pawn_attack = (board & get_clear_file(FILE_H)) << 9;
+    uint64_t left_pawn_attack = (board & clear_file[FILE_A]) << 7;
+    uint64_t right_pawn_attack = (board & clear_file[FILE_H]) << 9;
 
     return left_pawn_attack | right_pawn_attack;
 }
@@ -251,8 +245,8 @@ uint64_t Table::generate_pawn_black(square s){
 uint64_t Table::generate_king(square s){
     uint64_t curr_board = get_square(s);
 
-    uint64_t clear_file_h = curr_board & get_clear_file(FILE_H);
-    uint64_t clear_file_a = curr_board & get_clear_file(FILE_A);
+    uint64_t clear_file_h = curr_board & clear_file[FILE_H];
+    uint64_t clear_file_a = curr_board & clear_file[FILE_A];
 
     uint64_t spot1 = clear_file_a << 7;
     uint64_t spot2 = curr_board << 8;
@@ -279,11 +273,11 @@ uint64_t Table::generate_knight(square s){
     */
     uint64_t curr_board = get_square(s);
 
-    uint64_t mask_a = get_clear_file(FILE_A);
-    uint64_t mask_h = get_clear_file(FILE_H);
+    uint64_t mask_a = clear_file[FILE_A];
+    uint64_t mask_h = clear_file[FILE_H];
 
-    uint64_t mask_a_b = get_clear_file(FILE_A) & get_clear_file(FILE_B);
-    uint64_t mask_g_h = get_clear_file(FILE_G) & get_clear_file(FILE_H);
+    uint64_t mask_a_b = clear_file[FILE_A] & clear_file[FILE_B];
+    uint64_t mask_g_h = clear_file[FILE_G] & clear_file[FILE_H];
 
     uint64_t spot1 = (curr_board & mask_a) >> 17;
     uint64_t spot2 = (curr_board & mask_h) >> 15;
@@ -303,10 +297,10 @@ uint64_t Table::generate_knight(square s){
 void Table::init_sliders(){
 
     for(int i = a8; i <= h1; i++){
+        attacks[KING][i] = generate_king(static_cast<square>(i));
+        attacks[KNIGHT][i] = generate_knight(static_cast<square>(i));
         pawn_attack_table[WHITE_PAWNS][i] =  generate_pawn_white(static_cast<square>(i));
         pawn_attack_table[BLACK_PAWNS][i] = generate_pawn_black(static_cast<square>(i));
-        king_attack_table[i] = generate_king(static_cast<square>(i));
-        knight_attack_table[i] = generate_knight(static_cast<square>(i));
     }
 }
 

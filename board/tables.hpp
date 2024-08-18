@@ -1,56 +1,12 @@
 #pragma once
-#include <array>
-#include <cstdint>
-
-#define FILE_A 'a'
-#define FILE_B 'b'
-#define FILE_C 'c'
-#define FILE_D 'd'
-#define FILE_E 'e'
-#define FILE_F 'f'
-#define FILE_G 'g'
-#define FILE_H 'h'
-
-#define RANK_1 1
-#define RANK_2 2
-#define RANK_3 3
-#define RANK_4 4
-#define RANK_5 5
-#define RANK_6 6
-#define RANK_7 7
-#define RANK_8 8
-
-#define empty_board "8/8/8/8/8/8/8/8 w - - "
-#define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
-#define tricky_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
-#define killer_position "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1"
-#define cmk_position "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9 "
-
-
-enum square{
-    a8, b8, c8, d8, e8, f8, g8, h8,
-    a7, b7, c7, d7, e7, f7, g7, h7,
-    a6, b6, c6, d6, e6, f6, g6, h6,
-    a5, b5, c5, d5, e5, f5, g5, h5,
-    a4, b4, c4, d4, e4, f4, g4, h4,
-    a3, b3, c3, d3, e3, f3, g3, h3,
-    a2, b2, c2, d2, e2, f2, g2, h2,
-    a1, b1, c1, d1, e1, f1, g1, h1, none
-};
+#include "types.hpp"
 
 class Table{
-    enum piece{
-        PAWN,
-        ROOK,
-        BISHOP,
-        QUEEN,
-        KING
-    };
     Table();
 
     uint64_t random_num();
     uint64_t generate_magic_nums();
-    uint64_t find_magic(square, piece);
+    uint64_t find_magic(square, piece_type);
     
     void fill_magic_table_rook();
     void fill_magic_table_bishop();
@@ -75,9 +31,6 @@ public:
         18446744073709486335ULL,
         18446744073709551360ULL
     };
-    inline uint64_t get_clear_rank(int rank){
-        return clear_rank[rank - 1];
-    }
     const std::array<uint64_t, 8> mask_rank = {
         18374686479671623680ULL,
         71776119061217280ULL,
@@ -88,9 +41,6 @@ public:
         65280ULL,
         255ULL
     };
-    inline uint64_t get_mask_rank(int rank){
-        return mask_rank[rank - 1];
-    }
     const std::array<uint64_t, 8> clear_file{
         18374403900871474942ULL,
         18302063728033398269ULL,
@@ -101,9 +51,6 @@ public:
         13816973012072644543ULL,
         9187201950435737471ULL,
     };
-    inline uint64_t get_clear_file(char file){
-        return clear_file[file - 'a'];
-    }
     const std::array<uint64_t, 8> mask_file{
         72340172838076673ULL,
         144680345676153346ULL,
@@ -114,12 +61,6 @@ public:
         4629771061636907072ULL,
         9259542123273814144ULL,
     };
-    inline uint64_t get_mask_file(char file){
-        return mask_file[file - 'a'];
-    }
-
-    #define WHITE_PAWNS 0
-    #define BLACK_PAWNS 1
 
     const std::array<uint64_t, 64> bishop_magics{
         0x420c80100408202, 0x2300224811184, 0x842140302e00000, 0x404404284000100, 0x840420006c0010, 0x81042004804004, 0x1004980130102880, 0x81040084044201,
@@ -165,6 +106,17 @@ public:
         12,11,11,11,11,11,11,12,
     };
 
+    const std::array<std::string, 64> square_map{
+        "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
+        "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
+        "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
+        "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
+        "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
+        "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
+        "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
+        "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1"
+    };
+
     std::array<std::array<uint64_t, 4096>, 64> rook_table;
     std::array<std::array<uint64_t, 512>, 64> bishop_table;
     std::array<uint64_t, 64> rook_attack_table;
@@ -174,18 +126,10 @@ public:
     std::array<std::array<uint64_t, 64>, 64> pawn_attack_table;
     std::array<uint64_t, 64> knight_attack_table;
 
+    std::array<std::array<uint64_t, 64>, 4> attacks;
+
     static Table& get_instance(){
         static Table t;
         return t;
     }
 };
-
-inline uint64_t get_square(square s){
-    return 1ULL << s;
-}
-
-static inline int count_bits(uint64_t a) {
-    int count;
-    for(count = 0; a; count++, a &= (a-1));
-    return count;
-} 

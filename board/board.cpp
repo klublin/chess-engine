@@ -24,40 +24,20 @@
 //     {72057594037927936, "A8"}, {144115188075855872, "B8"}, {288230376151711744, "C8"}, {576460752303423488, "D8"}, {1152921504606846976, "E8"}, {2305843009213693952, "F8"}, {4611686018427387904, "G8"}, {9223372036854775808ULL, "H8"}
 // };
 
-const std::array<std::string, 64> Board::square_map = {
-    "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
-    "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
-    "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
-    "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
-    "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
-    "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
-    "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
-    "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1"
-};
-
 const std::unordered_map<int, char> Board::symbol_map = {
-    {PAWNS, 'P'},
-    {KNIGHTS, 'N'},
-    {BISHOPS, 'B'},
-    {QUEEN, 'Q'},
-    {KING, 'K'},
-    {ROOKS, 'R'},
-    {PAWNS + BLACK_INDEX, 'p'},
-    {KNIGHTS + BLACK_INDEX, 'n'},
-    {BISHOPS + BLACK_INDEX, 'b'},
-    {QUEEN + BLACK_INDEX, 'q'},
-    {KING + BLACK_INDEX, 'k'},
-    {ROOKS + BLACK_INDEX, 'r'},
-    {2*NUM_PIECES, '.'}
-};
-
-const std::unordered_map<char, Board::piece> Board::reverse_symbol_map = {
-    {'P', PAWNS},
-    {'N', KNIGHTS},
-    {'B', BISHOPS},
-    {'R', ROOKS},
-    {'K', KING},
-    {'Q', QUEEN}
+    {P, 'P'},
+    {N, 'N'},
+    {B, 'B'},
+    {Q, 'Q'},
+    {K, 'K'},
+    {R, 'R'},
+    {p, 'p'},
+    {n, 'n'},
+    {b, 'b'},
+    {q, 'q'},
+    {k, 'k'},
+    {r, 'r'},
+    {no_piece, '.'}
 };
 
 void print_bitboard(uint64_t board){
@@ -73,7 +53,7 @@ void print_bitboard(uint64_t board){
     for(char c = 'a'; c <= 'h'; c++){
         std::cout << c << ' ';
     }
-    std::cout << board << "\n";
+    std::cout << "\n";
 }
 
 Board::Board() : side(WHITE), table(Table::get_instance()), enpessant(none){
@@ -111,55 +91,38 @@ Board::Board() : side(WHITE), table(Table::get_instance()), enpessant(none){
     }
 }
 
-inline uint64_t Board::get_pawn_attack_white(square s){
-    return table.pawn_attack_table[WHITE][s];
+template <color c>
+inline uint64_t Board::get_pawn_attack(square s){
+    return table.pawn_attack_table[c][s];
 }
 
-inline uint64_t Board::get_pawn_attack_black(square s){
-    return table.pawn_attack_table[BLACK][s];
-}
-
-inline uint64_t Board::get_knight_attack(square s){
-    return table.knight_attack_table[s];
-}
-
-inline uint64_t Board::get_king_attack(square s){
-    return table.king_attack_table[s];
-}
-
-uint64_t Board::get_bishop_attack(square s, uint64_t occup){
-    uint64_t attack = table.bishop_attack_table[s]; 
-
-    attack &= occup;
-    attack *= table.bishop_magics[s];
-    attack >>= (64 - table.bishop_occupancy_bits[s]);
-
-    return table.bishop_table[s][attack];   
-}
-
-uint64_t Board::get_rook_attack(square s, uint64_t occup){
-    uint64_t attack = table.rook_attack_table[s];
-    attack &= occup;
-    attack *= table.rook_magics[s];
-    attack >>= (64 - table.rook_occupancy_bits[s]);
-    return table.rook_table[s][attack];   
-}
-
-uint64_t Board::get_queen_attack(square s, uint64_t occup){
-    return get_rook_attack(s, occup) | get_bishop_attack(s, occup);
-}
-
-void capture(){
-
-}
-
-void make_move(){
-    
+template <piece_type p>
+uint64_t Board::get_attack_bb(square s, uint64_t occup){
+    uint64_t rook_attack;
+    uint64_t attack;
+    switch(p){
+        case ROOK:
+            rook_attack = table.attacks[p][s];
+            rook_attack &= occup;
+            rook_attack *= table.rook_magics[s];
+            rook_attack >>= (64 - table.rook_occupancy_bits[s]);
+            return table.rook_table[s][rook_attack];  
+        case BISHOP:
+            attack = table.attacks[p][s]; 
+            attack &= occup;
+            attack *= table.bishop_magics[s];
+            attack >>= (64 - table.bishop_occupancy_bits[s]);
+            return table.bishop_table[s][attack];   
+        case QUEEN:
+            return get_attack_bb<ROOK>(s, occup) | get_attack_bb<BISHOP>(s, occup);
+        default:
+            return table.attacks[p][s];
+    }
 }
 
 //checks if current square is attacked by given by the side 
 bool Board::attacked(square s, color side){
-    if((side == WHITE) && (get_pawn_attack_black(s) & bitboards[P])) return true;
+    if((side == WHITE) && (get_pawn_attack<BLACK>(s) & bitboards[P])) return true;
     
     //we wonder if the current square is being attacked by a black pawn. White pawns attack looks something like:
     /*
@@ -167,20 +130,21 @@ bool Board::attacked(square s, color side){
         0 P 0
         if we have a black pawn on any of those attack squares then it means that there is a black pawn attacking the current square
     */
-    if((side == BLACK && (get_pawn_attack_white(s) & bitboards[p]))) return true;
+    if((side == BLACK && (get_pawn_attack<WHITE>(s) & bitboards[p]))) return true;
 
-    if(get_knight_attack(s) & (side == WHITE ? bitboards[N] : bitboards[n])) return true;
-
-    
-    if(get_king_attack(s) & (side == WHITE ? bitboards[K] : bitboards[k])) return true;
+    if(get_attack_bb<KNIGHT>(s, 0) & (side == WHITE ? bitboards[N] : bitboards[n])) return true;
 
     
-    if(get_bishop_attack(s, occup[OCCUP_ALL]) & (side == WHITE ? bitboards[B] : bitboards[b])) return true;
+    if(get_attack_bb<KING>(s, 0) & (side == WHITE ? bitboards[K] : bitboards[k])) return true;
 
     
-    if(get_rook_attack(s, occup[OCCUP_ALL]) & (side == WHITE ? bitboards[R] : bitboards[r])) return true;
+    if(get_attack_bb<BISHOP>(s, occup[OCCUP_ALL]) & (side == WHITE ? bitboards[B] : bitboards[b])) return true;
 
-    //no queen because the previous two already checked for this
+    
+    if(get_attack_bb<ROOK>(s, occup[OCCUP_ALL]) & (side == WHITE ? bitboards[R] : bitboards[r])) return true;
+
+    if(get_attack_bb<QUEEN>(s, occup[OCCUP_ALL]) & (side == WHITE ? bitboards[Q] : bitboards[q])) return true;
+
     return false;
 }
 
@@ -194,6 +158,7 @@ inline int Board::check_is_piece(char c){
 }
 void Board::read_fen(const std::string& fen){
     //our enum square starts at a8, where the fen string starts
+    std::cout << fen << "\n";
     int index = 0;
 
     for(int square = 0; square < 64; index++){
@@ -241,7 +206,7 @@ void Board::read_fen(const std::string& fen){
 
     for(int i = 0; i < NUM_PIECES; i++){
         occup[OCCUP_WHITE] |= bitboards[i];
-        occup[OCCUP_BLACK] |= bitboards[i + BLACK_INDEX];
+        occup[OCCUP_BLACK] |= bitboards[i + BLACK];
     }
     occup[OCCUP_ALL] = occup[OCCUP_WHITE] | occup[OCCUP_BLACK];
 }
@@ -258,7 +223,7 @@ void Board::print(){
     uint64_t all_pieces = 0;
 
     for(int i = WHITE; i < NUM_PIECES; i++){
-        all_pieces |= (bitboards[i] | bitboards[i + BLACK_INDEX]);
+        all_pieces |= (bitboards[i] | bitboards[i + BLACK]);
     }
 
     for(int i = 0; i < 8; i++){
@@ -305,14 +270,15 @@ void Board::print(){
     }
     std::cout << "\n";
     if(enpessant!= none){
-        std::cout << square_map[enpessant] << "\n";
+        std::cout << table.square_map[enpessant] << "\n";
     }
     else{
         std::cout << "-\n";
     }
+    std::cout << "\n";
 }
 
-void Board::debug(const std::string& square){
+void Board::debug(uint64_t b){
     //read_fen("8/8/8/3N4/8/8/8/8 w KQkq - 0 1 ");
-
+    print_bitboard(b);
 }

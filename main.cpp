@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include "board.hpp"
-#include "engine.hpp"
 
 /*
     Inital goal, play a game of chess on the commandline
