@@ -26,10 +26,9 @@ public:
     template<color c>
     uint64_t get_pawn_attack(square);
 
-    template <piece_type p>
-    uint64_t get_attack_bb(square s, uint64_t occup=0);
+    uint64_t get_attack_bb(piece_type p, square s, uint64_t occup=0);
 
-    static constexpr const std::array<char, 12> pieces = {'N', 'B', 'R', 'K', 'Q', 'P', 'n', 'b', 'r', 'k', 'q', 'p'};
+    
     void read_fen(const std::string&);
     inline int check_is_piece(char c);
 

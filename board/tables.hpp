@@ -117,6 +117,8 @@ public:
         "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1"
     };
 
+    const std::array<char, 12> pieces = {'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'};
+
     std::array<std::array<uint64_t, 4096>, 64> rook_table;
     std::array<std::array<uint64_t, 512>, 64> bishop_table;
     std::array<uint64_t, 64> rook_attack_table;

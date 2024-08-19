@@ -96,27 +96,30 @@ inline uint64_t Board::get_pawn_attack(square s){
     return table.pawn_attack_table[c][s];
 }
 
-template <piece_type p>
-uint64_t Board::get_attack_bb(square s, uint64_t occup){
+uint64_t Board::get_attack_bb(piece_type p, square s, uint64_t occup){
     uint64_t rook_attack;
     uint64_t attack;
     switch(p){
         case ROOK:
-            rook_attack = table.attacks[p][s];
+            rook_attack = table.rook_attack_table[s];
             rook_attack &= occup;
             rook_attack *= table.rook_magics[s];
             rook_attack >>= (64 - table.rook_occupancy_bits[s]);
             return table.rook_table[s][rook_attack];  
         case BISHOP:
-            attack = table.attacks[p][s]; 
+            attack = table.bishop_attack_table[s]; 
             attack &= occup;
             attack *= table.bishop_magics[s];
             attack >>= (64 - table.bishop_occupancy_bits[s]);
             return table.bishop_table[s][attack];   
         case QUEEN:
-            return get_attack_bb<ROOK>(s, occup) | get_attack_bb<BISHOP>(s, occup);
+            return get_attack_bb(ROOK, s, occup) | get_attack_bb(BISHOP, s, occup);
+        case KNIGHT:
+            return table.knight_attack_table[s];
+        case KING:
+            return table.king_attack_table[s];
         default:
-            return table.attacks[p][s];
+            return 0;
     }
 }
 
@@ -132,25 +135,22 @@ bool Board::attacked(square s, color side){
     */
     if((side == BLACK && (get_pawn_attack<WHITE>(s) & bitboards[p]))) return true;
 
-    if(get_attack_bb<KNIGHT>(s, 0) & (side == WHITE ? bitboards[N] : bitboards[n])) return true;
-
+    if(get_attack_bb(KNIGHT, s, 0) & (side == WHITE ? bitboards[N] : bitboards[n])) return true;
     
-    if(get_attack_bb<KING>(s, 0) & (side == WHITE ? bitboards[K] : bitboards[k])) return true;
-
+    if(get_attack_bb(KING, s, 0) & (side == WHITE ? bitboards[K] : bitboards[k])) return true;
     
-    if(get_attack_bb<BISHOP>(s, occup[OCCUP_ALL]) & (side == WHITE ? bitboards[B] : bitboards[b])) return true;
+    if(get_attack_bb(BISHOP, s, occup[OCCUP_ALL]) & (side == WHITE ? bitboards[B] : bitboards[b])) return true;
 
-    
-    if(get_attack_bb<ROOK>(s, occup[OCCUP_ALL]) & (side == WHITE ? bitboards[R] : bitboards[r])) return true;
+    if(get_attack_bb(ROOK, s, occup[OCCUP_ALL]) & (side == WHITE ? bitboards[R] : bitboards[r])) return true;
 
-    if(get_attack_bb<QUEEN>(s, occup[OCCUP_ALL]) & (side == WHITE ? bitboards[Q] : bitboards[q])) return true;
+    if(get_attack_bb(QUEEN, s, occup[OCCUP_ALL]) & (side == WHITE ? bitboards[Q] : bitboards[q])) return true;
 
     return false;
 }
 
 inline int Board::check_is_piece(char c){
     for(int i = 0; i < 12; i++){
-        if(pieces[i] == c){
+        if(table.pieces[i] == c){
             return i;
         }
     }

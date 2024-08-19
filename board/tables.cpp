@@ -9,11 +9,11 @@ uint64_t Table::mask_rook_attack(square s){
     uint64_t attack_map = 0;
     
     //RIGHT
-    for(int r = rank, c = file + 1; c < RANK_7; c++){
+    for(int r = rank, c = file + 1; c <= RANK_7; c++){
         attack_map |= 1ULL << (r*8 + c); 
     }
     //up
-    for(int r = rank + 1, c = file; r < RANK_7; r++){
+    for(int r = rank + 1, c = file; r <= RANK_7; r++){
         attack_map |= 1ULL << (r * 8 + c);
     }
     //LEFT
@@ -34,12 +34,12 @@ uint64_t Table::mask_rook_attack_ray(square s, uint64_t blockers){
     uint64_t attack_map = 0;
     
     //RIGHT
-    for(int r = rank, c = file + 1; c <= RANK_7; c++){
+    for(int r = rank, c = file + 1; c <= RANK_8; c++){
         attack_map |= 1ULL << (r*8 + c); 
         if(blockers & (1ULL << (r* 8 + c))) break;
     }
     //up
-    for(int r = rank + 1, c = file; r <= RANK_7; r++){
+    for(int r = rank + 1, c = file; r <= RANK_8; r++){
         attack_map |= 1ULL << (r * 8 + c);
         if(blockers & (1ULL << (r* 8 + c))) break;
     }
@@ -63,17 +63,17 @@ uint64_t Table::mask_bishop_attack(square s){
     uint64_t attack_map = 0;
     
     //up diagonal RIGHT
-    for(int r = rank + 1, c = file + 1; r < RANK_7 && c < RANK_7; r++, c++){
+    for(int r = rank + 1, c = file + 1; r <= RANK_7 && c <= RANK_7; r++, c++){
         attack_map |= 1ULL << (r*8 + c); 
     }
 
     //DOWN DIAGONAL RIGHT
-    for(int r = rank - 1, c = file + 1; c < RANK_7 && r > 0; r--, c++){
+    for(int r = rank - 1, c = file + 1; c <= RANK_7 && r > 0; r--, c++){
         attack_map |= 1ULL << (r * 8 + c);
     }
 
     //LEFT DIAGONAL UP
-    for(int r = rank + 1, c = file  - 1; c > 0 && r < RANK_7; c--, r++){
+    for(int r = rank + 1, c = file  - 1; c > 0 && r <= RANK_7; c--, r++){
         attack_map |= 1ULL << (r * 8 + c);
     }
 
@@ -91,19 +91,19 @@ uint64_t Table::mask_bishop_attack_ray(square s, uint64_t blockers){
     uint64_t attack_map = 0;
     
     //up diagonal RIGHT
-    for(int r = rank + 1, c = file + 1; r <= RANK_7 && c <= RANK_7; r++, c++){
+    for(int r = rank + 1, c = file + 1; r <= RANK_8 && c <= RANK_8; r++, c++){
         attack_map |= 1ULL << (r*8 + c); 
         if(blockers & (1ULL << (r* 8 + c))) break;
     }
 
     //DOWN DIAGONAL RIGHT
-    for(int r = rank - 1, c = file + 1; c <= RANK_7 && r >= 0; r--, c++){
+    for(int r = rank - 1, c = file + 1; c <= RANK_8 && r >= 0; r--, c++){
         attack_map |= 1ULL << (r * 8 + c);
         if(blockers & (1ULL << (r* 8 + c))) break;
     }
 
     //LEFT DIAGONAL UP
-    for(int r = rank + 1, c = file  - 1; c >= 0 && r <= RANK_7; c--, r++){
+    for(int r = rank + 1, c = file  - 1; c >= 0 && r <= RANK_8; c--, r++){
         attack_map |= 1ULL << (r * 8 + c);
         if(blockers & (1ULL << (r* 8 + c))) break;
     }
@@ -192,7 +192,7 @@ uint64_t Table::find_magic(square square, piece_type p){
 void Table::fill_magic_table_rook(){
     for(int i = a8; i <= h1; i++){
         uint64_t attack_mask = mask_rook_attack(static_cast<square>(i));
-        attacks[ROOK][i] = attack_mask;
+        rook_attack_table[i] = attack_mask;
 
         int num_bits = rook_occupancy_bits[i];
         for(int index = 0; index < (1 << num_bits); index++){
@@ -208,10 +208,7 @@ void Table::fill_magic_table_rook(){
 void Table::fill_magic_table_bishop(){
     for(int i = a8; i <= h1; i++){
         uint64_t attack_mask = mask_bishop_attack(static_cast<square>(i));
-        if(i == a1){
-            //print_bitboard(attack_mask);
-        }
-        attacks[BISHOP][i] = attack_mask;
+        bishop_attack_table[i] = attack_mask;
 
         int num_bits = bishop_occupancy_bits[i];
         for(int index = 0; index < (1 << num_bits); index++){
@@ -297,8 +294,8 @@ uint64_t Table::generate_knight(square s){
 void Table::init_sliders(){
 
     for(int i = a8; i <= h1; i++){
-        attacks[KING][i] = generate_king(static_cast<square>(i));
-        attacks[KNIGHT][i] = generate_knight(static_cast<square>(i));
+        king_attack_table[i] = generate_king(static_cast<square>(i));
+        knight_attack_table[i] = generate_knight(static_cast<square>(i));
         pawn_attack_table[WHITE_PAWNS][i] =  generate_pawn_white(static_cast<square>(i));
         pawn_attack_table[BLACK_PAWNS][i] = generate_pawn_black(static_cast<square>(i));
     }

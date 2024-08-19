@@ -87,19 +87,19 @@ enum Rank {
     RANK_8
 };
 
-enum pieces{N, B, R, K, Q, P, n,b,r,k,q,p, no_piece};
+enum { P, N, B, R, Q, K, p, n, b, r, q, k, no_piece};
 
-enum piece_type{
+enum piece_type{    
+    PAWN, 
     KNIGHT, 
     BISHOP, 
     ROOK, 
-    KING,
     QUEEN,
-    PAWN,   
+    KING,
     NUM_PIECES=6
 };
 
-inline uint64_t get_square(square s){
+static inline uint64_t get_square(square s){
     return 1ULL << s;
 }
 
@@ -109,7 +109,7 @@ static inline int count_bits(uint64_t a) {
     return count;
 } 
 
-inline int get_lsb_index(uint64_t num){
+static inline int get_lsb_index(uint64_t num){
     if(num){
         return count_bits((num & -num) - 1);
     }
