@@ -1,5 +1,6 @@
 #pragma once
 #include "types.hpp"
+#include <unordered_map>
 
 class Table{
     Table();
@@ -118,6 +119,33 @@ public:
     };
 
     const std::array<char, 12> pieces = {'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'};
+
+    const std::unordered_map<Piece, char> symbol_map = {
+        {P, 'P'},
+        {N, 'N'},
+        {B, 'B'},
+        {Q, 'Q'},
+        {K, 'K'},
+        {R, 'R'},
+        {p, 'p'},
+        {n, 'n'},
+        {b, 'b'},
+        {q, 'q'},
+        {k, 'k'},
+        {r, 'r'},
+        {no_piece, '.'}
+    };
+
+    const std::array<int, 64> castle_rights_table = {
+         7, 15, 15, 15,  3, 15, 15, 11,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        13, 15, 15, 15, 12, 15, 15, 14
+    };
 
     std::array<std::array<uint64_t, 4096>, 64> rook_table;
     std::array<std::array<uint64_t, 512>, 64> bishop_table;

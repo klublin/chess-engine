@@ -8,5 +8,6 @@ add_subdirectory(board)
 add_subdirectory(evaluation)
 add_subdirectory(move_generation)
 add_subdirectory(search)
+add_subdirectory(perft)
 
 target_include_directories(chess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

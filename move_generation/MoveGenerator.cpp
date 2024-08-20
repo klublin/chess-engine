@@ -4,24 +4,24 @@
 Table& MoveGenerator::t = Table::get_instance();
 
 template<color c>
-inline void MoveGenerator::helper(uint64_t board, int incr, move_list& list, int capture, int push, int enpassant){
+inline void MoveGenerator::helper(uint64_t board, int incr, move_list& list, int flags){
 	while(board){
 		int dest = get_lsb_index(board);
 		int source = dest + incr;
-		list.add_move(source, dest, P + c, 0, capture, push, enpassant, 0);
+		list.add_move(source, dest, P + c, 0, flags);
 		board &= (board - 1);
 	}
 }
 
 template<color c>
-inline void MoveGenerator::helper_promo(uint64_t board, int incr, move_list& list, int capture){
+inline void MoveGenerator::helper_promo(uint64_t board, int incr, move_list& list, int flags){
 	while(board){
 		int dest = get_lsb_index(board);
 		int source = dest + incr;
-        list.add_move(source, dest, P + c, Q + c, capture, 0, 0, 0);
-        list.add_move(source, dest, P + c, R + c, capture, 0, 0, 0);
-        list.add_move(source, dest, P + c, B + c, capture, 0, 0, 0);
-        list.add_move(source, dest, P + c, N + c, capture, 0, 0, 0);
+        list.add_move(source, dest, P + c, Q + c, flags);
+        list.add_move(source, dest, P + c, R + c, flags);
+        list.add_move(source, dest, P + c, B + c, flags);
+        list.add_move(source, dest, P + c, N + c, flags);
 		board &= (board - 1);
 	}
 }
@@ -36,30 +36,30 @@ void MoveGenerator::generate_pawn_moves(move_list& list){
         uint64_t push = (pawns >> 8) & ~board.occup[OCCUP_ALL];
         uint64_t double_push = ((push & t.mask_rank[RANK_3]) >> 8) & ~board.occup[OCCUP_ALL];
 
-        helper<WHITE>(push, 8, list, 0, 0, 0);
-        helper<WHITE>(double_push, 16, list, 0, 1, 0);
+        helper<WHITE>(push, 8, list, 0);
+        helper<WHITE>(double_push, 16, list, DOUBLE);
 
         //promotion
         uint64_t b1 = ((promote & t.clear_file[FILE_H]) >> 7) & board.occup[OCCUP_BLACK];
         uint64_t b2 = ((promote & t.clear_file[FILE_A]) >> 9) & board.occup[OCCUP_BLACK];
         uint64_t b3 = promote >> 8 & ~board.occup[OCCUP_ALL];
 
-        helper_promo<WHITE>(b1, 7, list, 1);
-        helper_promo<WHITE>(b2, 9, list, 1);
+        helper_promo<WHITE>(b1, 7, list, CAPTURE);
+        helper_promo<WHITE>(b2, 9, list, CAPTURE);
         helper_promo<WHITE>(b3, 8, list, 0);
 
         uint64_t cap1 = ((pawns & t.clear_file[FILE_H]) >> 7) & board.occup[OCCUP_BLACK];
         uint64_t cap2 = ((pawns & t.clear_file[FILE_A]) >> 9) & board.occup[OCCUP_BLACK];
 
-        helper<WHITE>(cap1, 7, list, 1, 0, 0);
-        helper<WHITE>(cap2, 9, list, 1, 0, 0);
+        helper<WHITE>(cap1, 7, list, CAPTURE);
+        helper<WHITE>(cap2, 9, list, CAPTURE);
 
         if(board.enpessant != none){
             cap1 = ((pawns & t.clear_file[FILE_H]) >> 7) & 1 << board.enpessant;
             cap2 = ((pawns & t.clear_file[FILE_A]) >> 9) & 1 << board.enpessant;
             
-            helper<WHITE>(cap1, 7, list, 1, 0, 1);
-            helper<WHITE>(cap2, 9, list, 1, 0, 1);
+            helper<WHITE>(cap1, 7, list, ENPASSANT | CAPTURE);
+            helper<WHITE>(cap2, 9, list, ENPASSANT | CAPTURE);
         }
     }
     else{
@@ -70,30 +70,30 @@ void MoveGenerator::generate_pawn_moves(move_list& list){
         uint64_t push = (pawns << 8) & ~board.occup[OCCUP_ALL];
         uint64_t double_push = ((push & t.mask_rank[RANK_6]) << 8) & ~board.occup[OCCUP_ALL];
 
-        helper<BLACK>(push, -8, list, 0, 0, 0);
-        helper<BLACK>(double_push, -16, list, 0, 1, 0);
+        helper<BLACK>(push, -8, list, 0);
+        helper<BLACK>(double_push, -16, list, DOUBLE);
 
         //promotion
         uint64_t b1 = ((promote & t.clear_file[FILE_A]) << 7) & board.occup[OCCUP_WHITE];
         uint64_t b2 = ((promote & t.clear_file[FILE_H]) << 9) & board.occup[OCCUP_WHITE];
         uint64_t b3 = promote << 8 & ~board.occup[OCCUP_ALL];
 
-        helper_promo<BLACK>(b1, -7, list, 1);
-        helper_promo<BLACK>(b2, -9, list, 1);
+        helper_promo<BLACK>(b1, -7, list, CAPTURE);
+        helper_promo<BLACK>(b2, -9, list, CAPTURE);
         helper_promo<BLACK>(b3, -8, list, 0);
 
         uint64_t cap1 = ((pawns & t.clear_file[FILE_A]) << 7) & board.occup[OCCUP_WHITE];
         uint64_t cap2 = ((pawns & t.clear_file[FILE_H]) << 9) & board.occup[OCCUP_WHITE];
 
-        helper<BLACK>(cap1, -7, list, 1, 0, 0);
-        helper<BLACK>(cap2, -9, list, 1, 0, 0);
+        helper<BLACK>(cap1, -7, list, CAPTURE);
+        helper<BLACK>(cap2, -9, list, CAPTURE);
 
         if(board.enpessant != none){
             cap1 = ((pawns & t.clear_file[FILE_A]) << 7) & 1 << board.enpessant;
             cap2 = ((pawns & t.clear_file[FILE_H]) << 9) & 1 << board.enpessant;
             
-            helper<BLACK>(cap1, -7, list, 1, 0, 1);
-            helper<BLACK>(cap2, -9, list, 1, 0, 1);
+            helper<BLACK>(cap1, -7, list, ENPASSANT | CAPTURE);
+            helper<BLACK>(cap2, -9, list, ENPASSANT | CAPTURE);
         }
     }
 }
@@ -103,7 +103,7 @@ void MoveGenerator::generate_castle_moves(move_list& list){
         if((board.castling_rights & WK)!=0){
             if((board.occup[OCCUP_ALL] & (1ULL << f1)) == 0 && (board.occup[OCCUP_ALL] & (1ULL << g1)) == 0){
                 if(!board.attacked(f1, BLACK) && !board.attacked(g1, BLACK)){
-                    list.add_move(e1, h1, K, 0, 0, 0, 0, 1);
+                    list.add_move(e1, h1, K, 0, CASTLING);
                 }
             }
         }
@@ -111,7 +111,7 @@ void MoveGenerator::generate_castle_moves(move_list& list){
         if((board.castling_rights & WQ)!= 0){
             if((board.occup[OCCUP_ALL] & (1ULL << b1)) == 0 && (board.occup[OCCUP_ALL] & (1ULL << c1)) == 0 && (board.occup[OCCUP_ALL] & (1ULL << d1)) == 0){
                 if(!board.attacked(c1, BLACK) && !board.attacked(d1, BLACK)){
-                    list.add_move(e1, a1, K, 0, 0, 0, 0, 1);
+                    list.add_move(e1, a1, K, 0, CASTLING);
                 }
             }
         }
@@ -120,7 +120,7 @@ void MoveGenerator::generate_castle_moves(move_list& list){
         if((board.castling_rights & BK)!=0){
             if((board.occup[OCCUP_ALL] & (1ULL<< f8)) == 0 && (board.occup[OCCUP_ALL] & (1ULL << g8)) == 0){
                 if(!board.attacked(f8, WHITE) && !board.attacked(g8, WHITE)){
-                    list.add_move(e8, h8, k, 0, 0, 0, 0, 1);
+                    list.add_move(e8, h8, k, 0, CASTLING);
                 }
             }
         }
@@ -128,7 +128,7 @@ void MoveGenerator::generate_castle_moves(move_list& list){
         if((board.castling_rights & BQ)!= 0){
             if((board.occup[OCCUP_ALL] & (1ULL << b8)) == 0 && (board.occup[OCCUP_ALL] & (1ULL << c8)) == 0 && (board.occup[OCCUP_ALL] & (1ULL << d8)) == 0){
                 if(!board.attacked(c8, WHITE) && !board.attacked(d8, WHITE)){
-                    list.add_move(e8, h8, k, 0, 0, 0, 0, 1);
+                    list.add_move(e8, h8, k, 0, CASTLING);
                 }
             }
         }
@@ -138,13 +138,13 @@ void MoveGenerator::generate_castle_moves(move_list& list){
 void MoveGenerator::generate_moves(piece_type pt, color c, uint64_t bb, move_list& list){
     while(bb){
         int source = get_lsb_index(bb);
-        uint64_t moves = board.get_attack_bb(pt, static_cast<square>(source), 
-                        board.occup[OCCUP_ALL]) & ~((board.side == WHITE) ? board.occup[OCCUP_WHITE] : board.occup[OCCUP_BLACK]); 
+        uint64_t moves = board.get_attack_bb(pt, static_cast<square>(source)) & ~(board.side == WHITE ? board.occup[OCCUP_WHITE] : board.occup[OCCUP_BLACK]); 
 
         while(moves){
             int dest_sq = get_lsb_index(moves);
             int capture = (1ULL << dest_sq) & (board.side == WHITE ? board.occup[OCCUP_BLACK] : board.occup[OCCUP_WHITE]);
-            list.add_move(source, dest_sq, pt+c, 0, capture ? 1 : 0, 0, 0, 0);
+
+            list.add_move(source, dest_sq, pt+c, 0, capture ? CAPTURE : 0);
             moves &= (moves - 1);
         }
         bb &= (bb - 1);
@@ -161,7 +161,16 @@ void MoveGenerator::generate_all(){
     generate_moves(ROOK, board.side, board.bitboards[R + board.side], list);
     generate_moves(BISHOP, board.side, board.bitboards[B + board.side], list);
 
-    list.print();
+    //send all move data for board to do this   
+    //board.make_move();
+    int move = list.moves[0];
+
+    int dest = move_list::get_target(move);
+    int source = move_list::get_source(move);
+    int piece = move_list::get_piece(move);
+    int flag = move_list::get_flags(move);
+    int promoted = move_list::get_promoted(move);
+    board.make_move(source, dest, piece, promoted, flag);
 }
 
 MoveGenerator::MoveGenerator(Board b) : board(b){

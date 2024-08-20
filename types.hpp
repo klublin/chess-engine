@@ -46,12 +46,14 @@ enum color{
     BLACK = 6
 };
 
+inline color operator^(color a, color b){return static_cast<color>(int(a)^int(b));}
+
 enum pawns{
     WHITE_PAWNS,
     BLACK_PAWNS
 };
 
-enum castling{
+enum Castle{
     NONE=0,
     WK=1,
     WQ=2,
@@ -87,7 +89,7 @@ enum Rank {
     RANK_8
 };
 
-enum { P, N, B, R, Q, K, p, n, b, r, q, k, no_piece};
+enum Piece{ P, N, B, R, Q, K, p, n, b, r, q, k, no_piece};
 
 enum piece_type{    
     PAWN, 
@@ -97,6 +99,13 @@ enum piece_type{
     QUEEN,
     KING,
     NUM_PIECES=6
+};
+
+enum Flags{
+    CAPTURE=1,
+    DOUBLE=2,
+    ENPASSANT=4,
+    CASTLING=8
 };
 
 static inline uint64_t get_square(square s){

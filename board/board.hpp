@@ -6,28 +6,30 @@
 
 class Board{
 public:
-    color side;
     Table& table;
-    square enpessant;
-    int castling_rights;
-
+    
     //12 for all pieces
     std::array<uint64_t, 12> bitboards;
     std::array<uint64_t, 3> occup;
+    color side;
+    square enpessant;
+    uint8_t castling_rights;
 
-    //these maps may be better suited as arrays? Maybe cahnge for later when runtime becomes an issue
-    // const static std::unordered_map<std::string, uint64_t> square_to_num;
-    // const static std::unordered_map<uint64_t, std::string> num_to_square;
-    static const std::unordered_map<int, char> symbol_map;
+    //for ease of use, it might be better to just keep a stack and restore on a pop
+    //each time make move is invoked, maybe we just push to the stack
+    std::array<uint64_t, 12> prev_bitboards;
+    std::array<uint64_t, 3> prev_occup;
+    color prev_side;
+    square prev_enpessant;
+    uint8_t prev_castling;
 
-    int which_piece(const uint64_t board);
+    Piece which_piece(const int);
 
     //sliders
     template<color c>
     uint64_t get_pawn_attack(square);
 
-    uint64_t get_attack_bb(piece_type p, square s, uint64_t occup=0);
-
+    uint64_t get_attack_bb(piece_type p, square s);
     
     void read_fen(const std::string&);
     inline int check_is_piece(char c);
@@ -38,8 +40,13 @@ public:
 
     bool attacked(square, color);
     
-    //friend std::ostream& operator<<(std::ostream& os, const Board&);
+    inline void update_bitboards(int piece, int from, int to);
+    inline void unmake_move();
+    void make_move(int source, int dest, int piece, int promoted, int flag);
+
     void print();
-    Board();
+
     void debug(uint64_t); 
+    Board();
+    //friend std::ostream& operator<<(std::ostream& os, const Board&);
 };
