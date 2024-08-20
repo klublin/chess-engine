@@ -1,6 +1,6 @@
-#include "board.hpp"
 #include <iostream>
 #include <cassert>
+#include "board.hpp"
 
 void print_bitboard(uint64_t board){
     for(int i = 0; i < 8; i++){
@@ -70,15 +70,15 @@ bool Board::attacked(square s, color side){
     */
     if((side == BLACK && (get_pawn_attack<WHITE>(s) & bitboards[p]))) return true;
 
-    if(get_attack_bb(KNIGHT, s) & (side == WHITE ? bitboards[N] : bitboards[n])) return true;
+    if(get_attack_bb(KNIGHT, s) & bitboards[N+side]) return true;
     
-    if(get_attack_bb(KING, s) & (side == WHITE ? bitboards[K] : bitboards[k])) return true;
+    if(get_attack_bb(KING, s) & bitboards[K+side]) return true;
     
-    if(get_attack_bb(BISHOP, s) & (side == WHITE ? bitboards[B] : bitboards[b])) return true;
+    if(get_attack_bb(BISHOP, s) & bitboards[B+side]) return true;
 
-    if(get_attack_bb(ROOK, s) & (side == WHITE ? bitboards[R] : bitboards[r])) return true;
+    if(get_attack_bb(ROOK, s) & bitboards[R+side]) return true;
 
-    if(get_attack_bb(QUEEN, s) & (side == WHITE ? bitboards[Q] : bitboards[q])) return true;
+    if(get_attack_bb(QUEEN, s) & bitboards[Q+side]) return true;
 
     return false;
 }
@@ -92,8 +92,7 @@ inline int Board::check_is_piece(char c){
     return -1;
 }
 void Board::read_fen(const std::string& fen){
-    //our enum square starts at a8, where the fen string starts
-    std::cout << fen << "\n";
+    //our enum square starts at a8, where the fen string starts 
     int index = 0;
 
     for(int square = 0; square < 64; index++){
@@ -207,7 +206,7 @@ void Board::print(){
     std::cout << "\n";
 }
 
-inline void Board::unmake_move(){
+void Board::unmake_move(){
     bitboards = prev_bitboards;
     occup = prev_occup;
     enpessant = prev_enpessant;
@@ -225,16 +224,16 @@ inline void Board::update_bitboards(int piece, int from, int to){
 
 }
 
-void Board::make_move(int source, int dest, int piece, int promoted, int flag){
+bool Board::make_move(Move m){
     prev_bitboards = bitboards;
     prev_occup = occup;
     prev_enpessant = enpessant;
     prev_side = side;
     prev_castling = castling_rights;
 
-    update_bitboards(piece, source, dest);
-    if(flag & CASTLING){
-        switch(dest){
+    update_bitboards(m.piece(), m.source(), m.target());
+    if(m.flags() & CASTLING){
+        switch(m.target()){
             case g1:
                 update_bitboards(R, h1, f1);              
                 break;
@@ -249,38 +248,38 @@ void Board::make_move(int source, int dest, int piece, int promoted, int flag){
                 break;
         }
     }
-    else if(flag & ENPASSANT){
+    else if(m.flags() & ENPASSANT){
         //clear piece from board
-        side == WHITE ? update_bitboards(p, dest + 8, none): update_bitboards(P, dest - 8, none);
+        side == WHITE ? update_bitboards(p, m.target() + 8, none): update_bitboards(P, m.target() - 8, none);
         enpessant = none;
     }
-    else if(flag & CAPTURE){
-        Piece captured = which_piece(dest);        
-        update_bitboards(captured, dest, none);
+    else if(m.target() & CAPTURE){
+        Piece captured = which_piece(m.target());        
+        update_bitboards(captured, m.target(), none);
     }
-    else if(flag & DOUBLE){
-        side == WHITE ? enpessant = static_cast<square>(dest + 8) : enpessant = static_cast<square>(dest - 8);
+    else if(m.flags() & DOUBLE){
+        side == WHITE ? enpessant = static_cast<square>(m.target() + 8) : enpessant = static_cast<square>(m.target() - 8);
     }
-    else if(promoted){
+    else if(m.promoted()){
         //pawn gets "captured"
-        update_bitboards(piece, source, none);
-        update_bitboards(promoted, none, dest);
+        update_bitboards(m.piece(), m.source(), none);
+        update_bitboards(m.promoted(), none, m.target());
     }
 
-    castling_rights &= table.castle_rights_table[source];
-    castling_rights &= table.castle_rights_table[dest];
+    castling_rights &= table.castle_rights_table[m.source()];
+    castling_rights &= table.castle_rights_table[m.target()];
 
     side = side ^ BLACK;
 
     if(attacked((side == WHITE ? static_cast<square>(get_lsb_index(bitboards[K])) : static_cast<square>(get_lsb_index(bitboards[k]))), side)){
         unmake_move();
+        return false;
     }
+    
+    return true;
 }
 
 void Board::debug(uint64_t b){
     //read_fen("8/8/8/3N4/8/8/8/8 w KQkq - 0 1 ");
     print_bitboard(b);
 }
-
-Board::Board() : table(Table::get_instance()),  
-        bitboards{0}, occup{0}, side(WHITE) , enpessant(none){}

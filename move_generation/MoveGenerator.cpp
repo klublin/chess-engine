@@ -1,10 +1,8 @@
 #include "MoveGenerator.hpp"
 #include <iostream>
 
-Table& MoveGenerator::t = Table::get_instance();
-
 template<color c>
-inline void MoveGenerator::helper(uint64_t board, int incr, move_list& list, int flags){
+inline void helper(uint64_t board, int incr, move_list& list, int flags){
 	while(board){
 		int dest = get_lsb_index(board);
 		int source = dest + incr;
@@ -14,7 +12,7 @@ inline void MoveGenerator::helper(uint64_t board, int incr, move_list& list, int
 }
 
 template<color c>
-inline void MoveGenerator::helper_promo(uint64_t board, int incr, move_list& list, int flags){
+inline void helper_promo(uint64_t board, int incr, move_list& list, int flags){
 	while(board){
 		int dest = get_lsb_index(board);
 		int source = dest + incr;
@@ -26,7 +24,7 @@ inline void MoveGenerator::helper_promo(uint64_t board, int incr, move_list& lis
 	}
 }
 
-void MoveGenerator::generate_pawn_moves(move_list& list){
+void generate_pawn_moves(Board& board, move_list& list, Table& t){
     //need to add each move to a movelist
     if(board.side == WHITE){
         uint64_t promote = board.bitboards[P] & t.mask_rank[RANK_7];
@@ -98,7 +96,7 @@ void MoveGenerator::generate_pawn_moves(move_list& list){
     }
 }
 
-void MoveGenerator::generate_castle_moves(move_list& list){
+void generate_castle_moves(Board& board, move_list& list){
     if(board.side == WHITE){
         if((board.castling_rights & WK)!=0){
             if((board.occup[OCCUP_ALL] & (1ULL << f1)) == 0 && (board.occup[OCCUP_ALL] & (1ULL << g1)) == 0){
@@ -135,53 +133,36 @@ void MoveGenerator::generate_castle_moves(move_list& list){
     }
 }
 
-void MoveGenerator::generate_moves(piece_type pt, color c, uint64_t bb, move_list& list){
+template <piece_type pt>
+void generate_moves(Board& b, move_list& list){
+    uint64_t bb = b.bitboards[pt + b.side];
+
     while(bb){
         int source = get_lsb_index(bb);
-        uint64_t moves = board.get_attack_bb(pt, static_cast<square>(source)) & ~(board.side == WHITE ? board.occup[OCCUP_WHITE] : board.occup[OCCUP_BLACK]); 
+        uint64_t moves = b.get_attack_bb(pt, static_cast<square>(source)) & ~(b.side == WHITE ? b.occup[OCCUP_WHITE] : b.occup[OCCUP_BLACK]); 
 
         while(moves){
             int dest_sq = get_lsb_index(moves);
-            int capture = (1ULL << dest_sq) & (board.side == WHITE ? board.occup[OCCUP_BLACK] : board.occup[OCCUP_WHITE]);
+            int capture = (1ULL << dest_sq) & (b.side == WHITE ? b.occup[OCCUP_BLACK] : b.occup[OCCUP_WHITE]);
 
-            list.add_move(source, dest_sq, pt+c, 0, capture ? CAPTURE : 0);
+            list.add_move(source, dest_sq, pt+b.side, 0, capture ? CAPTURE : 0);
             moves &= (moves - 1);
         }
         bb &= (bb - 1);
     }
 }
 
-void MoveGenerator::generate_all(){
+move_list generate_all(Board& board){
     move_list list;
-    generate_pawn_moves(list);
-    generate_castle_moves(list);
-    generate_moves(KNIGHT, board.side, board.bitboards[N + board.side], list);
-    generate_moves(KING, board.side, board.bitboards[K + board.side], list);
-    generate_moves(QUEEN, board.side, board.bitboards[Q + board.side], list);
-    generate_moves(ROOK, board.side, board.bitboards[R + board.side], list);
-    generate_moves(BISHOP, board.side, board.bitboards[B + board.side], list);
+    generate_pawn_moves(board, list, board.table);
+    generate_castle_moves(board, list);
 
-    //send all move data for board to do this   
-    //board.make_move();
-    int move = list.moves[0];
-
-    int dest = move_list::get_target(move);
-    int source = move_list::get_source(move);
-    int piece = move_list::get_piece(move);
-    int flag = move_list::get_flags(move);
-    int promoted = move_list::get_promoted(move);
-    board.make_move(source, dest, piece, promoted, flag);
+    generate_moves<KING>(board, list);
+    generate_moves<QUEEN>(board, list);
+    generate_moves<ROOK>(board, list);
+    generate_moves<BISHOP>(board, list);
+    
+    return list;
 }
 
-MoveGenerator::MoveGenerator(Board b) : board(b){
-
-}
-
-int main(){
-    Board b;
-    b.read_fen(tricky_position);
-    b.print();
-    MoveGenerator m(b);
-
-    m.generate_all();
-}
+Table& move_list::t(Table::get_instance());

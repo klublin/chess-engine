@@ -292,7 +292,6 @@ uint64_t Table::generate_knight(square s){
 }
 
 void Table::init_sliders(){
-
     for(int i = a8; i <= h1; i++){
         king_attack_table[i] = generate_king(static_cast<square>(i));
         knight_attack_table[i] = generate_knight(static_cast<square>(i));
