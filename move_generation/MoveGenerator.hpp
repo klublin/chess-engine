@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include "board.hpp"
+#include "Move.hpp"
 
 struct move_list{
     Move moves[256];

@@ -1,30 +1,23 @@
 #pragma once
 #include <string>
+#include <stack>
 #include "tables.hpp"
-#include "types.hpp"
+#include "State.hpp"
+#include "Move.hpp"
 
 class Board{
-    inline void update_bitboards(int piece, int from, int to);
+    inline void update_bitboards(int piece, int source, int dest, int occup_index);
     inline int check_is_piece(char c);
 public:
     Table& table;
     
-    //12 for all pieces
-    std::array<uint64_t, 12> bitboards;
-    std::array<uint64_t, 3> occup;
-    color side;
-    square enpessant;
-    uint8_t castling_rights;
+    State st;
+    std::stack<State> history;
+    State* get_state() {return &st;};
 
-    //for ease of use, it might be better to just keep a stack and restore on a pop
-    //each time make move is invoked, maybe we just push to the stack
-    std::array<uint64_t, 12> prev_bitboards;
-    std::array<uint64_t, 3> prev_occup;
-    color prev_side;
-    square prev_enpessant;
-    uint8_t prev_castling;
+    void save_state();
 
-    Piece which_piece(const int);
+    Piece which_piece(const int, int);
 
     //sliders
     template<color c>
@@ -40,16 +33,14 @@ public:
 
     bool attacked(square, color);
     
-    void unmake_move();
+    void unmake_move(Move m);
     bool make_move(Move m);
 
     void print();
 
     void debug(uint64_t); 
 
-    Board(const std::string &s) : table(Table::get_instance()),  
-        bitboards{0}, occup{0}, side(WHITE) , enpessant(none){read_fen(s);}
-    Board() : table(Table::get_instance()),  
-    bitboards{0}, occup{0}, side(WHITE) , enpessant(none){}
+    Board(const std::string &s) : table(Table::get_instance()){read_fen(s);}
+    Board() : table(Table::get_instance()) {}
     //friend std::ostream& operator<<(std::ostream& os, const Board&);
 };

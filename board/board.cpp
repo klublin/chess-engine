@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cassert>
 #include "board.hpp"
+#include "MoveGenerator.hpp"
+#include "Move.hpp"
 
 void print_bitboard(uint64_t board){
     for(int i = 0; i < 8; i++){
@@ -28,6 +30,9 @@ inline void set_bit(uint64_t& board, int s){
 
 template <color c>
 inline uint64_t Board::get_pawn_attack(square s){
+    if(s > 64){
+        std::cout << "wtf\n";
+    }
     return table.pawn_attack_table[c][s];
 }
 
@@ -37,13 +42,13 @@ uint64_t Board::get_attack_bb(piece_type p, square s){
     switch(p){
         case ROOK:
             rook_attack = table.rook_attack_table[s];
-            rook_attack &= occup[OCCUP_ALL];
+            rook_attack &= st.occup[OCCUP_ALL];
             rook_attack *= table.rook_magics[s];
             rook_attack >>= (64 - table.rook_occupancy_bits[s]);
             return table.rook_table[s][rook_attack];  
         case BISHOP:
             attack = table.bishop_attack_table[s]; 
-            attack &= occup[OCCUP_ALL];
+            attack &= st.occup[OCCUP_ALL];
             attack *= table.bishop_magics[s];
             attack >>= (64 - table.bishop_occupancy_bits[s]);
             return table.bishop_table[s][attack];   
@@ -60,7 +65,8 @@ uint64_t Board::get_attack_bb(piece_type p, square s){
 
 //checks if current square is attacked by given by the side 
 bool Board::attacked(square s, color side){
-    if((side == WHITE) && (get_pawn_attack<BLACK>(s) & bitboards[P])) return true;
+    //todo: get rid of the pawn branch
+    if((side == WHITE) && (get_pawn_attack<BLACK>(s) & st.bitboards[P])) return true;
     
     //we wonder if the current square is being attacked by a black pawn. White pawns attack looks something like:
     /*
@@ -68,17 +74,17 @@ bool Board::attacked(square s, color side){
         0 P 0
         if we have a black pawn on any of those attack squares then it means that there is a black pawn attacking the current square
     */
-    if((side == BLACK && (get_pawn_attack<WHITE>(s) & bitboards[p]))) return true;
+    if((side == BLACK && (get_pawn_attack<WHITE>(s) & st.bitboards[p]))) return true;
 
-    if(get_attack_bb(KNIGHT, s) & bitboards[N+side]) return true;
+    if(get_attack_bb(KNIGHT, s) & st.bitboards[N+side]) return true;
     
-    if(get_attack_bb(KING, s) & bitboards[K+side]) return true;
+    if(get_attack_bb(KING, s) & st.bitboards[K+side]) return true;
     
-    if(get_attack_bb(BISHOP, s) & bitboards[B+side]) return true;
+    if(get_attack_bb(BISHOP, s) & st.bitboards[B+side]) return true;
 
-    if(get_attack_bb(ROOK, s) & bitboards[R+side]) return true;
+    if(get_attack_bb(ROOK, s) & st.bitboards[R+side]) return true;
 
-    if(get_attack_bb(QUEEN, s) & bitboards[Q+side]) return true;
+    if(get_attack_bb(QUEEN, s) & st.bitboards[Q+side]) return true;
 
     return false;
 }
@@ -99,7 +105,7 @@ void Board::read_fen(const std::string& fen){
         int code = check_is_piece(fen[index]);
         
         if(code!= -1){
-            bitboards[code] |= 1ULL << square;
+            st.bitboards[code] |= 1ULL << square;
             square++;
         }
         else if(fen[index] >= '1' && fen[index] <= '8'){
@@ -110,16 +116,16 @@ void Board::read_fen(const std::string& fen){
     assert(fen[index] == ' ');
     index++;
 
-    side = fen[index] == 'w' ? WHITE : BLACK;
+    st.side = fen[index] == 'w' ? WHITE : BLACK;
     index+=2;
 
     //we are now at the castling
     while(fen[index]!= ' '){
         switch(fen[index]){
-            case 'K': castling_rights |= WK; break;
-            case 'Q': castling_rights |= WQ; break;
-            case 'k': castling_rights |= BK; break;
-            case 'q': castling_rights |= BQ; break;
+            case 'K': st.castling_rights |= WK; break;
+            case 'Q': st.castling_rights |= WQ; break;
+            case 'k': st.castling_rights |= BK; break;
+            case 'q': st.castling_rights |= BQ; break;
             default: break;
         }
         index++;
@@ -128,27 +134,27 @@ void Board::read_fen(const std::string& fen){
 
     //en passant square
     if(fen[index] == '-'){
-        enpessant = none;
+        st.enpessant = none;
     }
     else{
         int file = fen[index++] - 'a';
         int rank = 8 - (fen[index] - '0');
         int s = rank * 8 + file;
 
-        enpessant = static_cast<square>(s);
+        st.enpessant = static_cast<square>(s);
     }
 
     for(int i = 0; i < NUM_PIECES; i++){
-        occup[OCCUP_WHITE] |= bitboards[i];
-        occup[OCCUP_BLACK] |= bitboards[i + BLACK];
+        st.occup[OCCUP_WHITE] |= st.bitboards[i];
+        st.occup[OCCUP_BLACK] |= st.bitboards[i + BLACK];
     }
-    occup[OCCUP_ALL] = occup[OCCUP_WHITE] | occup[OCCUP_BLACK];
+    st.occup[OCCUP_ALL] = st.occup[OCCUP_WHITE] | st.occup[OCCUP_BLACK];
 }
 
-Piece Board::which_piece(const int s){
+Piece Board::which_piece(const int s, int start=0){
     uint64_t board = get_square(static_cast<square>(s));
-    for(int i = 0; i < 12; i++){
-        if((bitboards[i] & board) != 0)
+    for(int i = start; i < 12; i++){
+        if((st.bitboards[i] & board) != 0)
             return static_cast<Piece>(i);
     }
     return no_piece;
@@ -169,36 +175,36 @@ void Board::print(){
     }
     std::cout << "\n";
 
-    if(castling_rights & WK){
+    if(st.castling_rights & WK){
         std::cout << 'K';
     }
     else{
         std::cout << '-';
     }
 
-    if(castling_rights & WQ){
+    if(st.castling_rights & WQ){
         std::cout << 'Q';
     }
     else{
         std::cout << '-';
     }
 
-    if(castling_rights & BK){
+    if(st.castling_rights & BK){
         std::cout << 'k';
     }
     else{
         std::cout << '-';
     }
 
-    if(castling_rights & BQ){
+    if(st.castling_rights & BQ){
         std::cout << 'q';
     }
     else{
         std::cout << '-';
     }
     std::cout << "\n";
-    if(enpessant!= none){
-        std::cout << table.square_map[enpessant] << "\n";
+    if(st.enpessant!= none){
+        std::cout << table.square_map[st.enpessant] << "\n";
     }
     else{
         std::cout << "-\n";
@@ -206,73 +212,89 @@ void Board::print(){
     std::cout << "\n";
 }
 
-void Board::unmake_move(){
-    bitboards = prev_bitboards;
-    occup = prev_occup;
-    enpessant = prev_enpessant;
-    side = prev_side;
-    castling_rights = prev_castling;
+void Board::unmake_move(Move m){
+    st = history.top();
+    history.pop();
 }
 
-inline void Board::update_bitboards(int piece, int from, int to){
-    pop_bit(bitboards[piece], from);
-    pop_bit(occup[OCCUP_ALL], from);
-    pop_bit(occup[OCCUP_WHITE], from);
-    set_bit(bitboards[piece], to);
-    set_bit(occup[OCCUP_ALL], to);
-    set_bit(occup[OCCUP_WHITE], to);
+inline void Board::update_bitboards(int piece, int source, int dest, int occup_index){
+    pop_bit(st.bitboards[piece], source);
+    set_bit(st.bitboards[piece], dest);
+    pop_bit(st.occup[occup_index], source);
+    set_bit(st.occup[occup_index], dest);
+}
 
+void Board::save_state(){
+    history.push(st);
 }
 
 bool Board::make_move(Move m){
-    prev_bitboards = bitboards;
-    prev_occup = occup;
-    prev_enpessant = enpessant;
-    prev_side = side;
-    prev_castling = castling_rights;
+    save_state();
+    color us = st.side;
+    color them = us ^ BLACK;
 
-    update_bitboards(m.piece(), m.source(), m.target());
+    int piece = m.piece();
+    int source = m.source();
+    int dest = m.target();
+    int occup_index = us/6;
+
+    update_bitboards(piece, source, dest, occup_index);
+
+    if(m.promoted()){
+        //pawn gets "captured"
+        pop_bit(st.bitboards[piece], dest);
+        set_bit(st.bitboards[m.promoted()], dest);
+        pop_bit(st.occup[occup_index], source);
+        set_bit(st.occup[occup_index], dest);
+    }
+
     if(m.flags() & CASTLING){
         switch(m.target()){
             case g1:
-                update_bitboards(R, h1, f1);              
+                update_bitboards(R, h1, f1, occup_index);
                 break;
             case c1:
-                update_bitboards(R, a1, d1);
+                update_bitboards(R, a1, d1, occup_index);
                 break;
             case g8:
-                update_bitboards(r, h1, f1);
+                update_bitboards(r, h8, f8, occup_index);
                 break;
             case c8:
-                update_bitboards(r, a8, d8);
+                update_bitboards(r, a8, d8, occup_index);
                 break;
         }
     }
-    else if(m.flags() & ENPASSANT){
-        //clear piece from board
-        side == WHITE ? update_bitboards(p, m.target() + 8, none): update_bitboards(P, m.target() - 8, none);
-        enpessant = none;
-    }
-    else if(m.target() & CAPTURE){
-        Piece captured = which_piece(m.target());        
-        update_bitboards(captured, m.target(), none);
-    }
-    else if(m.flags() & DOUBLE){
-        side == WHITE ? enpessant = static_cast<square>(m.target() + 8) : enpessant = static_cast<square>(m.target() - 8);
-    }
-    else if(m.promoted()){
-        //pawn gets "captured"
-        update_bitboards(m.piece(), m.source(), none);
-        update_bitboards(m.promoted(), none, m.target());
+
+    if(m.flags() & CAPTURE){
+        int cap_sq = dest;
+
+        if(m.flags() & ENPASSANT){
+            us == WHITE ? pop_bit(st.bitboards[p], cap_sq + 8), pop_bit(st.occup[occup_index], cap_sq + 8) 
+                            : pop_bit(st.bitboards[P], cap_sq - 8), pop_bit(st.occup[occup_index], cap_sq - 8);
+            st.enpessant = none;
+        }
+        Piece captured = which_piece(m.target(), them);
+        //st.captured = captured;
+        pop_bit(st.bitboards[captured], cap_sq);
+        //occup_index is the current sides occup_index, need to xor by 1 to use other occup. 
+        pop_bit(st.occup[occup_index^1], cap_sq);
     }
 
-    castling_rights &= table.castle_rights_table[m.source()];
-    castling_rights &= table.castle_rights_table[m.target()];
+    st.enpessant = none;
 
-    side = side ^ BLACK;
+    if(m.flags() & DOUBLE){
+        us == WHITE ? st.enpessant = static_cast<square>(dest + 8) : st.enpessant = static_cast<square>(dest - 8);
+    }
 
-    if(attacked((side == WHITE ? static_cast<square>(get_lsb_index(bitboards[K])) : static_cast<square>(get_lsb_index(bitboards[k]))), side)){
-        unmake_move();
+
+    st.castling_rights &= table.castle_rights_table[source];
+    st.castling_rights &= table.castle_rights_table[dest];
+
+    st.side = them;
+    st.occup[OCCUP_ALL] = st.occup[OCCUP_WHITE] | st.occup[OCCUP_BLACK];
+
+    if(attacked(static_cast<square>(get_lsb_index(st.bitboards[K+us])), st.side)){
+        unmake_move(m);
         return false;
     }
     
