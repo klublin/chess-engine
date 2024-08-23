@@ -28,12 +28,9 @@ inline void set_bit(uint64_t& board, int s){
     board |= (1ULL << s);
 }
 
-template <color c>
+template<pawns p>
 inline uint64_t Board::get_pawn_attack(square s){
-    if(s > 64){
-        std::cout << "wtf\n";
-    }
-    return table.pawn_attack_table[c][s];
+    	return table.pawn_attack_table[p][s];
 }
 
 uint64_t Board::get_attack_bb(piece_type p, square s){
@@ -65,16 +62,17 @@ uint64_t Board::get_attack_bb(piece_type p, square s){
 
 //checks if current square is attacked by given by the side 
 bool Board::attacked(square s, color side){
-    //todo: get rid of the pawn branch
-    if((side == WHITE) && (get_pawn_attack<BLACK>(s) & st.bitboards[P])) return true;
-    
+	//todo: get rid of the pawn branch
+    //if(get_pawn_attack(side ^ BLACK, s) & st.bitboards[P+side]) return true;
+
+    if((side == WHITE) && (get_pawn_attack<BLACK_PAWNS>(s) & st.bitboards[P])) return true;
     //we wonder if the current square is being attacked by a black pawn. White pawns attack looks something like:
     /*
         1 0 1
         0 P 0
         if we have a black pawn on any of those attack squares then it means that there is a black pawn attacking the current square
     */
-    if((side == BLACK && (get_pawn_attack<WHITE>(s) & st.bitboards[p]))) return true;
+    if((side == BLACK && (get_pawn_attack<WHITE_PAWNS>(s) & st.bitboards[p]))) return true;
 
     if(get_attack_bb(KNIGHT, s) & st.bitboards[N+side]) return true;
     
@@ -236,7 +234,7 @@ bool Board::make_move(Move m){
     int piece = m.piece();
     int source = m.source();
     int dest = m.target();
-    int occup_index = us/6;
+    int occup_index = us == WHITE ? OCCUP_WHITE : OCCUP_BLACK;
 
     update_bitboards(piece, source, dest, occup_index);
 
@@ -293,7 +291,8 @@ bool Board::make_move(Move m){
     st.side = them;
     st.occup[OCCUP_ALL] = st.occup[OCCUP_WHITE] | st.occup[OCCUP_BLACK];
 
-    if(attacked(static_cast<square>(get_lsb_index(st.bitboards[K+us])), st.side)){
+    int king_lsb = get_lsb_index(st.bitboards[K+us]);
+    if(attacked(static_cast<square>(king_lsb), st.side)){
         unmake_move(m);
         return false;
     }
@@ -303,5 +302,9 @@ bool Board::make_move(Move m){
 
 void Board::debug(uint64_t b){
     //read_fen("8/8/8/3N4/8/8/8/8 w KQkq - 0 1 ");
-    print_bitboard(b);
+    
+    for(int i = a8; i <= h1; i++){
+        std::cout << table.square_map[i] << "\n";
+        print_bitboard(table.pawn_attack_table[BLACK_PAWNS][i]);
+    }
 }

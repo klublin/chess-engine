@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 project(chess_engine)
 
-add_compile_options(-Wall -g -Werror)
+add_compile_options(-Wall -fstack-protector-all -fsanitize=address -Werror)
+add_link_options(-fsanitize=address)
 add_executable(chess main.cpp)
 
 add_subdirectory(board)

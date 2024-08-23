@@ -3,6 +3,7 @@
 #include <unordered_map>
 
 class Table{
+public:
     Table();
 
     uint64_t random_num();
@@ -21,7 +22,7 @@ class Table{
     uint64_t generate_king(square);
     uint64_t generate_knight(square);
     void init_sliders();
-public:
+
     const std::array<uint64_t, 8> clear_rank = {
         72057594037927935ULL,
         18374967954648334335ULL,

@@ -20,7 +20,7 @@ public:
     Piece which_piece(const int, int);
 
     //sliders
-    template<color c>
+    template<pawns p>
     uint64_t get_pawn_attack(square);
 
     uint64_t get_attack_bb(piece_type p, square s);

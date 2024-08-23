@@ -227,7 +227,7 @@ uint64_t Table::generate_pawn_white(square s){
     uint64_t left_pawn_attack = (board & clear_file[FILE_A]) >> 9;
     uint64_t right_pawn_attack = (board & clear_file[FILE_H]) >> 7;
 
-    return left_pawn_attack | right_pawn_attack;
+    return (left_pawn_attack | right_pawn_attack);
 }
 
 uint64_t Table::generate_pawn_black(square s){
@@ -235,8 +235,7 @@ uint64_t Table::generate_pawn_black(square s){
 
     uint64_t left_pawn_attack = (board & clear_file[FILE_A]) << 7;
     uint64_t right_pawn_attack = (board & clear_file[FILE_H]) << 9;
-
-    return left_pawn_attack | right_pawn_attack;
+    return (left_pawn_attack | right_pawn_attack);
 }
 
 uint64_t Table::generate_king(square s){
