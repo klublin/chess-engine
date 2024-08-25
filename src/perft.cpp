@@ -45,21 +45,6 @@ void perft(Board& b, int depth){
     std::cout << "depth " << depth << " nodes " << nodes << " in: " << elapsed_seconds.count() << " seconds\n";
 }
 
-#define s "r3k2r/p1ppqpb1/bn2pnp1/3PN3/Pp2P3/2N2Q1p/1PPBBPPP/R3K2R b KQkq - 0 1"
-
-int perft_read(const std::string& input) {
-    std::istringstream iss(input);
-    std::string command;
-    int depth;
-
-    if (iss >> command >> depth) {
-        if (command == "perft" && depth > 0) {
-            return depth;
-        }
-    }
-    return -1;
-}
-
 int main(){
     Board b(tricky_position);
 
