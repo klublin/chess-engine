@@ -8,7 +8,7 @@ void print_bitboard(uint64_t board){
     for(int i = 0; i < 8; i++){
         std::cout << (8 - i) << "   ";
         for(int j = 0; j < 8; j++){
-            uint64_t mask = 1ULL << (i*8+j);
+            uint64_t mask = get_square(static_cast<square>(i*8+j));
             std::cout << ((board & mask) != 0 ? '1' : '0') << " ";
         }
         std::cout << "\n";
@@ -20,12 +20,12 @@ void print_bitboard(uint64_t board){
     std::cout << "\n";
 }
 
-inline void pop_bit(uint64_t& board, int s){
-    board &= ~(1ULL << s);
+inline void pop_bit(uint64_t& board, square s){
+    board &= ~(get_square(s));
 }
 
-inline void set_bit(uint64_t& board, int s){
-    board |= (1ULL << s);
+inline void set_bit(uint64_t& board, square s){
+    board |= (get_square(s));
 }
 
 template<pawns p>
@@ -99,15 +99,15 @@ void Board::read_fen(const std::string& fen){
     //our enum square starts at a8, where the fen string starts 
     int index = 0;
 
-    for(int square = 0; square < 64; index++){
+    for(int s = 0; s < 64; index++){
         int code = check_is_piece(fen[index]);
         
         if(code!= -1){
-            st.bitboards[code] |= 1ULL << square;
-            square++;
+            st.bitboards[code] |= get_square(static_cast<square>(s));
+            s++;
         }
         else if(fen[index] >= '1' && fen[index] <= '8'){
-            square += (fen[index] - '0');
+            s += (fen[index] - '0');
         }
     }
     //should be a space now
@@ -215,7 +215,7 @@ void Board::unmake_move(Move m){
     history.pop();
 }
 
-inline void Board::update_bitboards(int piece, int source, int dest, int occup_index){
+inline void Board::update_bitboards(int piece, square source, square dest, int occup_index){
     pop_bit(st.bitboards[piece], source);
     set_bit(st.bitboards[piece], dest);
     pop_bit(st.occup[occup_index], source);
@@ -232,8 +232,8 @@ bool Board::make_move(Move m){
     color them = us ^ BLACK;
 
     int piece = m.piece();
-    int source = m.source();
-    int dest = m.target();
+    square source = static_cast<square>(m.source());
+    square dest = static_cast<square>(m.target());
     int occup_index = us == WHITE ? OCCUP_WHITE : OCCUP_BLACK;
 
     update_bitboards(piece, source, dest, occup_index);
@@ -264,7 +264,7 @@ bool Board::make_move(Move m){
     }
 
     if(m.flags() & CAPTURE){
-        int cap_sq = dest;
+        square cap_sq = dest;
 
         if(m.flags() & ENPASSANT){
             if(us == WHITE){

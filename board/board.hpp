@@ -6,7 +6,7 @@
 #include "Move.hpp"
 
 class Board{
-    inline void update_bitboards(int piece, int source, int dest, int occup_index);
+    inline void update_bitboards(int piece, square source, square dest, int occup_index);
     inline int check_is_piece(char c);
 public:
     Table& table;

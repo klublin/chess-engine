@@ -41,6 +41,8 @@ enum square{
     a1, b1, c1, d1, e1, f1, g1, h1, none
 };
 
+inline square operator+=(square lhs, int rhs){ return lhs = static_cast<square>(static_cast<int>(lhs) + rhs); };
+inline square operator-=(square lhs, int rhs){ return lhs = static_cast<square>(static_cast<int>(lhs) + rhs); };
 enum color{
     WHITE = 0, 
     BLACK = 6

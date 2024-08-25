@@ -99,7 +99,7 @@ void generate_castle_moves(Board& board, move_list& list){
     State *st = &board.st;
     if(st->side == WHITE){
         if((st->castling_rights & WK)!=0){
-            if((st->occup[OCCUP_ALL] & (1ULL << f1)) == 0 && (st->occup[OCCUP_ALL] & (1ULL << g1)) == 0){
+            if((st->occup[OCCUP_ALL] & get_square(f1)) == 0 && (st->occup[OCCUP_ALL] & get_square(g1)) == 0){
                 if(!board.attacked(f1, BLACK) && !board.attacked(e1, BLACK)){
                     list.add_move(e1, g1, K, 0, CASTLING);
                 }
@@ -107,7 +107,7 @@ void generate_castle_moves(Board& board, move_list& list){
         }
 
         if((st->castling_rights & WQ)!= 0){
-            if((st->occup[OCCUP_ALL] & (1ULL << b1)) == 0 && (st->occup[OCCUP_ALL] & (1ULL << c1)) == 0 && (st->occup[OCCUP_ALL] & (1ULL << d1)) == 0){
+            if((st->occup[OCCUP_ALL] & get_square(b1)) == 0 && (st->occup[OCCUP_ALL] & get_square(c1)) == 0 && (st->occup[OCCUP_ALL] & get_square(d1)) == 0){
                 if(!board.attacked(e1, BLACK) && !board.attacked(d1, BLACK)){
                     list.add_move(e1, c1, K, 0, CASTLING);
                 }
@@ -116,7 +116,7 @@ void generate_castle_moves(Board& board, move_list& list){
     }
     else{
         if((st->castling_rights & BK)!=0){
-            if((st->occup[OCCUP_ALL] & (1ULL<< f8)) == 0 && (st->occup[OCCUP_ALL] & (1ULL << g8)) == 0){
+            if((st->occup[OCCUP_ALL] & get_square(f8)) == 0 && (st->occup[OCCUP_ALL] & get_square(g8)) == 0){
                 if(!board.attacked(e8, WHITE) && !board.attacked(f8, WHITE)){
                     list.add_move(e8, g8, k, 0, CASTLING);
                 }
@@ -124,7 +124,7 @@ void generate_castle_moves(Board& board, move_list& list){
         }
 
         if((st->castling_rights & BQ)!= 0){
-            if((st->occup[OCCUP_ALL] & (1ULL << b8)) == 0 && (st->occup[OCCUP_ALL] & (1ULL << c8)) == 0 && (st->occup[OCCUP_ALL] & (1ULL << d8)) == 0){
+            if((st->occup[OCCUP_ALL] & get_square(b8)) == 0 && (st->occup[OCCUP_ALL] & get_square(c8)) == 0 && (st->occup[OCCUP_ALL] & get_square(d8)) == 0){
                 if(!board.attacked(e8, WHITE) && !board.attacked(d8, WHITE)){
                     list.add_move(e8, c8, k, 0, CASTLING);
                 }
@@ -145,8 +145,8 @@ void generate_moves(Board& b, move_list& list){
         uint64_t moves = b.get_attack_bb(pt, static_cast<square>(source)) & ~(st->occup[us]);
 
         while(moves){
-            uint8_t dest_sq = get_lsb_index(moves);
-            uint64_t capture = (1ULL << dest_sq) & (st->occup[them]);
+            square dest_sq = static_cast<square>(get_lsb_index(moves));
+            uint64_t capture = get_square(dest_sq) & (st->occup[them]);
            
             list.add_move(source, dest_sq, pt+st->side, 0, capture ? CAPTURE : 0);
             moves &= (moves - 1);

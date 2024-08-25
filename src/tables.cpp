@@ -10,19 +10,19 @@ uint64_t Table::mask_rook_attack(square s){
     
     //RIGHT
     for(int r = rank, c = file + 1; c <= RANK_7; c++){
-        attack_map |= 1ULL << (r*8 + c); 
+        attack_map |= get_square(static_cast<square>(r*8 + c));
     }
     //up
     for(int r = rank + 1, c = file; r <= RANK_7; r++){
-        attack_map |= 1ULL << (r * 8 + c);
+        attack_map |= get_square(static_cast<square>(r*8 + c));
     }
     //LEFT
     for(int r = rank, c = file - 1; c > 0 ; c--){
-        attack_map |= 1ULL << (r * 8 + c);
+        attack_map |= get_square(static_cast<square>(r*8 + c));
     }
     //down
     for(int r = rank - 1, c = file; r > 0; r--){
-        attack_map |= 1ULL << (r * 8 + c);
+        attack_map |= get_square(static_cast<square>(r*8 + c));
     }
     return attack_map;
 }
@@ -35,23 +35,23 @@ uint64_t Table::mask_rook_attack_ray(square s, uint64_t blockers){
     
     //RIGHT
     for(int r = rank, c = file + 1; c <= RANK_8; c++){
-        attack_map |= 1ULL << (r*8 + c); 
-        if(blockers & (1ULL << (r* 8 + c))) break;
+        attack_map |= get_square(static_cast<square>(r*8 + c));
+        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
     }
     //up
     for(int r = rank + 1, c = file; r <= RANK_8; r++){
-        attack_map |= 1ULL << (r * 8 + c);
-        if(blockers & (1ULL << (r* 8 + c))) break;
+        attack_map |= get_square(static_cast<square>(r*8 + c));
+        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
     }
     //LEFT
     for(int r = rank, c = file - 1; c >= 0 ; c--){
-        attack_map |= 1ULL << (r * 8 + c);
-        if(blockers & (1ULL << (r* 8 + c))) break;
+        attack_map |= get_square(static_cast<square>(r*8 + c));
+        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
     }
     //down
     for(int r = rank - 1, c = file; r >= 0; r--){
-        attack_map |= 1ULL << (r * 8 + c);
-        if(blockers & (1ULL << (r* 8 + c))) break;
+        attack_map |= get_square(static_cast<square>(r*8 + c));
+        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
     }
     return attack_map;
 }
@@ -64,22 +64,22 @@ uint64_t Table::mask_bishop_attack(square s){
     
     //up diagonal RIGHT
     for(int r = rank + 1, c = file + 1; r <= RANK_7 && c <= RANK_7; r++, c++){
-        attack_map |= 1ULL << (r*8 + c); 
+        attack_map |= get_square(static_cast<square>(r*8 + c));
     }
 
     //DOWN DIAGONAL RIGHT
     for(int r = rank - 1, c = file + 1; c <= RANK_7 && r > 0; r--, c++){
-        attack_map |= 1ULL << (r * 8 + c);
+        attack_map |= get_square(static_cast<square>(r*8 + c));
     }
 
     //LEFT DIAGONAL UP
     for(int r = rank + 1, c = file  - 1; c > 0 && r <= RANK_7; c--, r++){
-        attack_map |= 1ULL << (r * 8 + c);
+        attack_map |= get_square(static_cast<square>(r*8 + c));
     }
 
     //LEFT DIAGONAL DOWN
     for(int r = rank - 1, c = file - 1; c > 0 && r > 0; r--, c--){
-        attack_map |= 1ULL << (r * 8 + c);
+        attack_map |= get_square(static_cast<square>(r*8 + c));
     }
     return attack_map;
 }
@@ -92,26 +92,26 @@ uint64_t Table::mask_bishop_attack_ray(square s, uint64_t blockers){
     
     //up diagonal RIGHT
     for(int r = rank + 1, c = file + 1; r <= RANK_8 && c <= RANK_8; r++, c++){
-        attack_map |= 1ULL << (r*8 + c); 
-        if(blockers & (1ULL << (r* 8 + c))) break;
+        attack_map |= get_square(static_cast<square>(r*8 + c));
+        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
     }
 
     //DOWN DIAGONAL RIGHT
     for(int r = rank - 1, c = file + 1; c <= RANK_8 && r >= 0; r--, c++){
-        attack_map |= 1ULL << (r * 8 + c);
-        if(blockers & (1ULL << (r* 8 + c))) break;
+        attack_map |= get_square(static_cast<square>(r*8 + c));
+        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
     }
 
     //LEFT DIAGONAL UP
     for(int r = rank + 1, c = file  - 1; c >= 0 && r <= RANK_8; c--, r++){
-        attack_map |= 1ULL << (r * 8 + c);
-        if(blockers & (1ULL << (r* 8 + c))) break;
+        attack_map |= get_square(static_cast<square>(r*8 + c));
+        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
     }
 
     //LEFT DIAGONAL DOWN
     for(int r = rank - 1, c = file - 1; c >= 0 && r >= 0; r--, c--){
-        attack_map |= 1ULL << (r * 8 + c);
-        if(blockers & (1ULL << (r* 8 + c))) break;
+        attack_map |= get_square(static_cast<square>(r*8 + c));
+        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
     }
     return attack_map;
 }
@@ -133,12 +133,12 @@ uint64_t occupancy(int index, uint64_t attack_mask){
     uint64_t occup_map = 0;
 
     for(int i = 0; i < count; i++){
-        int square = get_lsb_index(attack_mask);
+        square s = static_cast<square>(get_lsb_index(attack_mask));
 
-        attack_mask ^= (1ULL << square);
+        attack_mask ^= get_square(s);
 
         if(index & 1 << i){
-            occup_map |= 1ULL << square;
+            occup_map |= get_square(s);
         }
     }
     return occup_map;
