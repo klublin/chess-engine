@@ -1,5 +1,8 @@
 #include "MoveGenerator.hpp"
 #include <chrono>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 uint64_t nodes;
 void driver(Board& b, int level){
@@ -19,8 +22,7 @@ void driver(Board& b, int level){
     }
 }
 
-void perft(const std::string& fen, int depth){
-    Board b(fen);
+void perft(Board& b, int depth){
     move_list list = generate_all(b);
     const auto start{std::chrono::steady_clock::now()};
     for(const auto& m : list){
@@ -45,8 +47,22 @@ void perft(const std::string& fen, int depth){
 
 #define s "r3k2r/p1ppqpb1/bn2pnp1/3PN3/Pp2P3/2N2Q1p/1PPBBPPP/R3K2R b KQkq - 0 1"
 
+int perft_read(const std::string& input) {
+    std::istringstream iss(input);
+    std::string command;
+    int depth;
+
+    if (iss >> command >> depth) {
+        if (command == "perft" && depth > 0) {
+            return depth;
+        }
+    }
+    return -1;
+}
+
 int main(){
-    perft(s, 2);	
-    //perft(s, 3);
+    Board b(tricky_position);
+
+    perft(b, 3);
 
 }

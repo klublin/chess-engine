@@ -267,11 +267,18 @@ bool Board::make_move(Move m){
         int cap_sq = dest;
 
         if(m.flags() & ENPASSANT){
-            us == WHITE ? pop_bit(st.bitboards[p], cap_sq + 8), pop_bit(st.occup[occup_index], cap_sq + 8) 
-                            : pop_bit(st.bitboards[P], cap_sq - 8), pop_bit(st.occup[occup_index], cap_sq - 8);
+            if(us == WHITE){
+                cap_sq += 8;
+                dest += 8;
+            }
+            else{
+                cap_sq -= 8;
+                dest -= 8;
+            }
             st.enpessant = none;
         }
-        Piece captured = which_piece(m.target(), them);
+
+        Piece captured = which_piece(dest, them);
         //st.captured = captured;
         pop_bit(st.bitboards[captured], cap_sq);
         //occup_index is the current sides occup_index, need to xor by 1 to use other occup. 
