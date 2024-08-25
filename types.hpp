@@ -41,15 +41,15 @@ enum square{
     a1, b1, c1, d1, e1, f1, g1, h1, none
 };
 
-inline square operator+=(square lhs, int rhs){ return lhs = static_cast<square>(static_cast<int>(lhs) + rhs); };
-inline square operator-=(square lhs, int rhs){ return lhs = static_cast<square>(static_cast<int>(lhs) + rhs); };
+inline square& operator+=(square& lhs, int rhs){ return lhs = static_cast<square>(static_cast<int>(lhs) + rhs); };
+inline square& operator-=(square& lhs, int rhs){ return lhs = static_cast<square>(static_cast<int>(lhs) - rhs); };
+
 enum color{
     WHITE = 0, 
-    BLACK = 6
+    BLACK = 1
 };
-
 inline color operator^(color a, color b){return static_cast<color>(int(a)^int(b));}
-
+inline color operator~(color a) { return a ^ BLACK; };
 enum pawns{
     WHITE_PAWNS,
     BLACK_PAWNS
@@ -91,15 +91,15 @@ enum Rank {
     RANK_8
 };
 
-enum Piece{ P, N, B, R, Q, K, p, n, b, r, q, k, no_piece};
+enum Piece{ P, p, N, n, B, b, R, r, Q, q, K, k, no_piece};
 
-enum piece_type{    
-    PAWN, 
-    KNIGHT, 
-    BISHOP, 
-    ROOK, 
-    QUEEN,
-    KING,
+enum Piece_type{    
+    PAWN = P, 
+    KNIGHT = N, 
+    BISHOP = B, 
+    ROOK = R, 
+    QUEEN = Q,
+    KING = K,
     NUM_PIECES=6
 };
 

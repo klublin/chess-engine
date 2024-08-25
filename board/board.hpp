@@ -6,7 +6,7 @@
 #include "Move.hpp"
 
 class Board{
-    inline void update_bitboards(int piece, square source, square dest, int occup_index);
+    inline void update_bitboards(int piece, square source, square dest, color);
     inline int check_is_piece(char c);
 public:
     Table& table;
@@ -17,13 +17,12 @@ public:
 
     void save_state();
 
-    Piece which_piece(const int, int);
+    Piece which_piece(const int);
 
     //sliders
-    template<pawns p>
-    uint64_t get_pawn_attack(square);
+    uint64_t get_pawn_attack(color, square);
 
-    uint64_t get_attack_bb(piece_type p, square s);
+    uint64_t get_attack_bb(Piece_type, square s);
     
     void read_fen(const std::string&);
 

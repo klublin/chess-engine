@@ -4,50 +4,52 @@
 #include <sstream>
 #include <string>
 
-uint64_t nodes;
-void driver(Board& b, int level){
-    if(level == 0){
-        nodes++;
-        return;
+
+uint64_t perft(Board& b, int depth){
+    if(depth == 0){
+        return 1ULL;
     }
+    move_list l = generate_all(b);
 
-    move_list list = generate_all(b);
-
-    for(const auto& m : list){
+    uint64_t nodes = 0;
+    for(const auto& m : l){
         if(!b.make_move(m))
             continue;
-        driver(b, level - 1);
-
+        nodes += perft(b, depth - 1);
         b.unmake_move(m);
     }
+
+    return nodes;
 }
 
-void perft(Board& b, int depth){
-    move_list list = generate_all(b);
+void test(const std::string& fen, int depth){
+    Board board(fen);
+    Table& t = Table::get_instance();
+    uint64_t curr, tot = 0;
+
     const auto start{std::chrono::steady_clock::now()};
-    for(const auto& m : list){
-        if(!b.make_move(m))
+
+    move_list l = generate_all(board);
+    for(const auto& m : l){
+        if(!board.make_move(m)){
             continue;
+        }
+        curr = perft(board, depth - 1);
+        tot += curr;
+        board.unmake_move(m);
+
+        std::cout<< t.square_map[m.source()] 
+            << t.square_map[m.target()] << (m.promoted() ? t.pieces[m.promoted()] : (char)0) << ": " << curr << "\n";
         
-        uint64_t cum = nodes;
-
-        driver(b, depth - 1);
-
-        uint64_t old_nodes = nodes - cum;
-
-        b.unmake_move(m);
-
-        std::cout<< b.table.square_map[m.source()] 
-            << b.table.square_map[m.target()] << ": " << old_nodes << "\n";
     }
+    
     const auto end{std::chrono::steady_clock::now()};
     const std::chrono::duration<double> elapsed_seconds{end - start};
-    std::cout << "depth " << depth << " nodes " << nodes << " in: " << elapsed_seconds.count() << " seconds\n";
+    std::cout << "depth " << depth << " nodes " << tot << " in: " << elapsed_seconds.count() << " seconds\n";
 }
 
 int main(){
     Board b(tricky_position);
 
-    perft(b, 3);
-
+    test(tricky_position, 3);
 }

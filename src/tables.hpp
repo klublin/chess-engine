@@ -8,7 +8,7 @@ public:
 
     uint64_t random_num();
     uint64_t generate_magic_nums();
-    uint64_t find_magic(square, piece_type);
+    uint64_t find_magic(square, Piece_type);
     
     void fill_magic_table_rook();
     void fill_magic_table_bishop();
@@ -119,7 +119,7 @@ public:
         "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1"
     };
 
-    const std::array<char, 12> pieces = {'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'};
+    const std::array<char, 12> pieces = { 'P', 'p', 'N', 'n', 'B', 'b', 'R', 'r', 'Q', 'q', 'K', 'k' };
 
     const std::unordered_map<Piece, char> symbol_map = {
         {P, 'P'},

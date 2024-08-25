@@ -144,7 +144,7 @@ uint64_t occupancy(int index, uint64_t attack_mask){
     return occup_map;
 }
 
-uint64_t Table::find_magic(square square, piece_type p){
+uint64_t Table::find_magic(square square, Piece_type p){
     std::array<uint64_t, 4096> occupancies;
     std::array<uint64_t, 4096> attacks;
     std::array<uint64_t, 4096> used_attacks;
@@ -294,8 +294,8 @@ void Table::init_sliders(){
     for(int i = a8; i <= h1; i++){
         king_attack_table[i] = generate_king(static_cast<square>(i));
         knight_attack_table[i] = generate_knight(static_cast<square>(i));
-        pawn_attack_table[WHITE_PAWNS][i] =  generate_pawn_white(static_cast<square>(i));
-        pawn_attack_table[BLACK_PAWNS][i] = generate_pawn_black(static_cast<square>(i));
+        pawn_attack_table[WHITE][i] =  generate_pawn_white(static_cast<square>(i));
+        pawn_attack_table[BLACK][i] = generate_pawn_black(static_cast<square>(i));
     }
 }
 

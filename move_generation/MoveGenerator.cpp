@@ -133,16 +133,16 @@ void generate_castle_moves(Board& board, move_list& list){
     }
 }
 
-template <piece_type pt>
+template <Piece_type pt>
 void generate_moves(Board& b, move_list& list){
     State *st = &b.st;
     uint64_t bb = st->bitboards[pt + st->side];
-    uint8_t us = st->side/6;
-    uint8_t them = us ^ 1;
+    color us = st->side;
+    color them = ~us;
 
     while(bb){
-        uint8_t source = get_lsb_index(bb);
-        uint64_t moves = b.get_attack_bb(pt, static_cast<square>(source)) & ~(st->occup[us]);
+        square source = static_cast<square>(get_lsb_index(bb));
+        uint64_t moves = b.get_attack_bb(pt, source) & ~(st->occup[us]);
 
         while(moves){
             square dest_sq = static_cast<square>(get_lsb_index(moves));
