@@ -22,7 +22,33 @@ public:
     //sliders
     uint64_t get_pawn_attack(color, square);
 
-    uint64_t get_attack_bb(Piece_type, square s);
+    template<Piece_type pt>
+    uint64_t Board::get_attack_bb(square s){
+        uint64_t rook_attack;
+        uint64_t attack;
+        switch(pt){
+            case ROOK:
+                rook_attack = table.rook_attack_table[s];
+                rook_attack &= st.occup[OCCUP_ALL];
+                rook_attack *= table.rook_magics[s];
+                rook_attack >>= (64 - table.rook_occupancy_bits[s]);
+                return table.rook_table[s][rook_attack];  
+            case BISHOP:
+                attack = table.bishop_attack_table[s]; 
+                attack &= st.occup[OCCUP_ALL];
+                attack *= table.bishop_magics[s];
+                attack >>= (64 - table.bishop_occupancy_bits[s]);
+                return table.bishop_table[s][attack];   
+            case QUEEN:
+                return get_attack_bb<ROOK>(s) | get_attack_bb<BISHOP>(s);
+            case KNIGHT:
+                return table.knight_attack_table[s];
+            case KING:
+                return table.king_attack_table[s];
+            default:
+                return 0;
+        }
+    } 
     
     void read_fen(const std::string&);
 

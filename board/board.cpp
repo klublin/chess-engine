@@ -33,33 +33,6 @@ inline uint64_t Board::get_pawn_attack(color c, square s){
     	return table.pawn_attack_table[c][s];
 }
 
-uint64_t Board::get_attack_bb(Piece_type p, square s){
-    uint64_t rook_attack;
-    uint64_t attack;
-    switch(p){
-        case ROOK:
-            rook_attack = table.rook_attack_table[s];
-            rook_attack &= st.occup[OCCUP_ALL];
-            rook_attack *= table.rook_magics[s];
-            rook_attack >>= (64 - table.rook_occupancy_bits[s]);
-            return table.rook_table[s][rook_attack];  
-        case BISHOP:
-            attack = table.bishop_attack_table[s]; 
-            attack &= st.occup[OCCUP_ALL];
-            attack *= table.bishop_magics[s];
-            attack >>= (64 - table.bishop_occupancy_bits[s]);
-            return table.bishop_table[s][attack];   
-        case QUEEN:
-            return get_attack_bb(ROOK, s) | get_attack_bb(BISHOP, s);
-        case KNIGHT:
-            return table.knight_attack_table[s];
-        case KING:
-            return table.king_attack_table[s];
-        default:
-            return 0;
-    }
-}
-
 //checks if current square is attacked by given by the side 
 bool Board::attacked(square s, color side){
 
@@ -72,15 +45,15 @@ bool Board::attacked(square s, color side){
     */
     if(get_pawn_attack(~side, s) & st.bitboards[P+side]) return true;
 
-    if(get_attack_bb(KNIGHT, s) & st.bitboards[N+side]) return true;
+    if(get_attack_bb<KNIGHT>(s) & st.bitboards[N+side]) return true;
     
-    if(get_attack_bb(KING, s) & st.bitboards[K+side]) return true;
+    if(get_attack_bb<KING>(s) & st.bitboards[K+side]) return true;
     
-    if(get_attack_bb(BISHOP, s) & st.bitboards[B+side]) return true;
+    if(get_attack_bb<BISHOP>(s) & st.bitboards[B+side]) return true;
 
-    if(get_attack_bb(ROOK, s) & st.bitboards[R+side]) return true;
+    if(get_attack_bb<ROOK>(s) & st.bitboards[R+side]) return true;
 
-    if(get_attack_bb(QUEEN, s) & st.bitboards[Q+side]) return true;
+    if(get_attack_bb<QUEEN>(s) & st.bitboards[Q+side]) return true;
 
     return false;
 }
@@ -93,6 +66,7 @@ inline int Board::check_is_piece(char c){
     }
     return -1;
 }
+
 void Board::read_fen(const std::string& fen){
     //our enum square starts at a8, where the fen string starts 
     int index = 0;
@@ -244,6 +218,7 @@ bool Board::make_move(Move m){
 		pop_bit(st.bitboards[captured], cap_sq);
 		pop_bit(st.occup[~us], cap_sq);
     }
+
     if(m.promoted()){
         //pawn gets "captured"
         pop_bit(st.bitboards[piece], source);

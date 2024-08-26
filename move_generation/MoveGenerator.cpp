@@ -142,7 +142,7 @@ void generate_moves(Board& b, move_list& list){
 
     while(bb){
         square source = static_cast<square>(get_lsb_index(bb));
-        uint64_t moves = b.get_attack_bb(pt, source) & ~(st->occup[us]);
+        uint64_t moves = b.get_attack_bb<pt>(source) & ~(st->occup[us]);
 
         while(moves){
             square dest_sq = static_cast<square>(get_lsb_index(moves));

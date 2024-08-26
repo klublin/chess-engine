@@ -50,10 +50,6 @@ enum color{
 };
 inline color operator^(color a, color b){return static_cast<color>(int(a)^int(b));}
 inline color operator~(color a) { return a ^ BLACK; };
-enum pawns{
-    WHITE_PAWNS,
-    BLACK_PAWNS
-};
 
 enum Castle{
     NONE=0,

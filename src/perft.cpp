@@ -1,8 +1,6 @@
 #include "MoveGenerator.hpp"
 #include <chrono>
 #include <iostream>
-#include <sstream>
-#include <string>
 
 
 uint64_t perft(Board& b, int depth){
@@ -22,7 +20,7 @@ uint64_t perft(Board& b, int depth){
     return nodes;
 }
 
-void test(const std::string& fen, int depth){
+void perft_test(const std::string& fen, int depth){
     Board board(fen);
     Table& t = Table::get_instance();
     uint64_t curr, tot = 0;
@@ -42,14 +40,12 @@ void test(const std::string& fen, int depth){
             << t.square_map[m.target()] << (m.promoted() ? t.pieces[m.promoted()] : (char)0) << ": " << curr << "\n";
         
     }
-    
+
     const auto end{std::chrono::steady_clock::now()};
     const std::chrono::duration<double> elapsed_seconds{end - start};
     std::cout << "depth " << depth << " nodes " << tot << " in: " << elapsed_seconds.count() << " seconds\n";
 }
 
 int main(){
-    Board b(tricky_position);
-
-    test(tricky_position, 3);
+    perft_test(tricky_position, 5);
 }
