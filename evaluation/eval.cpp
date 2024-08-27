@@ -2,8 +2,8 @@
 #include "board.hpp"
 #include <iostream>
 
-std::array<int, 12> Eval::material_score = { 100, -100, 300, -300, 350, -350, 500, -500, 1000, -1000, 10000, -10000};
-std::array<std::array<int, 64>, 12> Eval::positional_scores{{
+std::array<int, 12> Evaluation::material_score = { 100, -100, 300, -300, 350, -350, 500, -500, 1000, -1000, 10000, -10000};
+std::array<std::array<int, 64>, 12> Evaluation::positional_scores{{
     {
           0,   0,   0,   0,   0,   0,   0,   0,
          50,  50,  50,  50,  50,  50,  50,  50,
