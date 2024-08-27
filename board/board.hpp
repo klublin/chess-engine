@@ -6,8 +6,19 @@
 #include "Move.hpp"
 
 class Board{
-    inline void update_bitboards(int piece, square source, square dest, color);
+    inline void update_bitboards(int piece, Square source, Square dest, color);
     inline int check_is_piece(char c);
+
+    const std::array<int, 64> castle_rights_table = {
+         7, 15, 15, 15,  3, 15, 15, 11,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        15, 15, 15, 15, 15, 15, 15, 15,
+        13, 15, 15, 15, 12, 15, 15, 14
+    };
 public:
     Table& table;
     
@@ -20,10 +31,10 @@ public:
     Piece which_piece(const int);
 
     //sliders
-    uint64_t get_pawn_attack(color, square);
+    uint64_t get_pawn_attack(color, Square);
 
     template<Piece_type pt>
-    uint64_t Board::get_attack_bb(square s){
+    uint64_t get_attack_bb(Square s){
         uint64_t rook_attack;
         uint64_t attack;
         switch(pt){
@@ -56,7 +67,7 @@ public:
     bool white_check;
     bool black_check;
 
-    bool attacked(square, color);
+    bool attacked(Square, color);
     
     void unmake_move(Move m);
     bool make_move(Move m);

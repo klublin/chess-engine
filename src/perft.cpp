@@ -45,7 +45,3 @@ void perft_test(const std::string& fen, int depth){
     const std::chrono::duration<double> elapsed_seconds{end - start};
     std::cout << "depth " << depth << " nodes " << tot << " in: " << elapsed_seconds.count() << " seconds\n";
 }
-
-int main(){
-    perft_test(tricky_position, 5);
-}

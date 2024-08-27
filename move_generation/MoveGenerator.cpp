@@ -141,11 +141,11 @@ void generate_moves(Board& b, move_list& list){
     color them = ~us;
 
     while(bb){
-        square source = static_cast<square>(get_lsb_index(bb));
+        Square source = static_cast<Square>(get_lsb_index(bb));
         uint64_t moves = b.get_attack_bb<pt>(source) & ~(st->occup[us]);
 
         while(moves){
-            square dest_sq = static_cast<square>(get_lsb_index(moves));
+            Square dest_sq = static_cast<Square>(get_lsb_index(moves));
             uint64_t capture = get_square(dest_sq) & (st->occup[them]);
            
             list.add_move(source, dest_sq, pt+st->side, 0, capture ? CAPTURE : 0);

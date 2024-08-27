@@ -30,7 +30,7 @@ a2, b2, c2, d2, e2, f2, g2, h2
 a1, b1, c1, d1, e1, f1, g1, h1
 
 */
-enum square{
+enum Square{
     a8, b8, c8, d8, e8, f8, g8, h8,
     a7, b7, c7, d7, e7, f7, g7, h7,
     a6, b6, c6, d6, e6, f6, g6, h6,
@@ -41,8 +41,8 @@ enum square{
     a1, b1, c1, d1, e1, f1, g1, h1, none
 };
 
-inline square& operator+=(square& lhs, int rhs){ return lhs = static_cast<square>(static_cast<int>(lhs) + rhs); };
-inline square& operator-=(square& lhs, int rhs){ return lhs = static_cast<square>(static_cast<int>(lhs) - rhs); };
+inline Square& operator+=(Square& lhs, int rhs){ return lhs = static_cast<Square>(static_cast<int>(lhs) + rhs); };
+inline Square& operator-=(Square& lhs, int rhs){ return lhs = static_cast<Square>(static_cast<int>(lhs) - rhs); };
 
 enum color{
     WHITE = 0, 
@@ -106,7 +106,7 @@ enum Flags{
     CASTLING=8
 };
 
-static inline uint64_t get_square(square s){
+static inline uint64_t get_square(Square s){
     return 1ULL << s;
 }
 

@@ -2,7 +2,7 @@
 #include "tables.hpp"
 
 
-uint64_t Table::mask_rook_attack(square s){
+uint64_t Table::mask_rook_attack(Square s){
     int file = s%8;
     int rank = s/8;
 
@@ -10,24 +10,24 @@ uint64_t Table::mask_rook_attack(square s){
     
     //RIGHT
     for(int r = rank, c = file + 1; c <= RANK_7; c++){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
     }
     //up
     for(int r = rank + 1, c = file; r <= RANK_7; r++){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
     }
     //LEFT
     for(int r = rank, c = file - 1; c > 0 ; c--){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
     }
     //down
     for(int r = rank - 1, c = file; r > 0; r--){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
     }
     return attack_map;
 }
 
-uint64_t Table::mask_rook_attack_ray(square s, uint64_t blockers){
+uint64_t Table::mask_rook_attack_ray(Square s, uint64_t blockers){
     int file = s%8;
     int rank = s/8;
 
@@ -35,28 +35,28 @@ uint64_t Table::mask_rook_attack_ray(square s, uint64_t blockers){
     
     //RIGHT
     for(int r = rank, c = file + 1; c <= RANK_8; c++){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
-        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
+        if(blockers & get_square(static_cast<Square>(r*8 + c))) break;
     }
     //up
     for(int r = rank + 1, c = file; r <= RANK_8; r++){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
-        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
+        if(blockers & get_square(static_cast<Square>(r*8 + c))) break;
     }
     //LEFT
     for(int r = rank, c = file - 1; c >= 0 ; c--){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
-        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
+        if(blockers & get_square(static_cast<Square>(r*8 + c))) break;
     }
     //down
     for(int r = rank - 1, c = file; r >= 0; r--){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
-        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
+        if(blockers & get_square(static_cast<Square>(r*8 + c))) break;
     }
     return attack_map;
 }
 
-uint64_t Table::mask_bishop_attack(square s){
+uint64_t Table::mask_bishop_attack(Square s){
     int file = s%8;
     int rank = s/8;
 
@@ -64,27 +64,27 @@ uint64_t Table::mask_bishop_attack(square s){
     
     //up diagonal RIGHT
     for(int r = rank + 1, c = file + 1; r <= RANK_7 && c <= RANK_7; r++, c++){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
     }
 
     //DOWN DIAGONAL RIGHT
     for(int r = rank - 1, c = file + 1; c <= RANK_7 && r > 0; r--, c++){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
     }
 
     //LEFT DIAGONAL UP
     for(int r = rank + 1, c = file  - 1; c > 0 && r <= RANK_7; c--, r++){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
     }
 
     //LEFT DIAGONAL DOWN
     for(int r = rank - 1, c = file - 1; c > 0 && r > 0; r--, c--){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
     }
     return attack_map;
 }
 
-uint64_t Table::mask_bishop_attack_ray(square s, uint64_t blockers){
+uint64_t Table::mask_bishop_attack_ray(Square s, uint64_t blockers){
     int file = s%8;
     int rank = s/8;
 
@@ -92,26 +92,26 @@ uint64_t Table::mask_bishop_attack_ray(square s, uint64_t blockers){
     
     //up diagonal RIGHT
     for(int r = rank + 1, c = file + 1; r <= RANK_8 && c <= RANK_8; r++, c++){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
-        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
+        if(blockers & get_square(static_cast<Square>(r*8 + c))) break;
     }
 
     //DOWN DIAGONAL RIGHT
     for(int r = rank - 1, c = file + 1; c <= RANK_8 && r >= 0; r--, c++){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
-        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
+        if(blockers & get_square(static_cast<Square>(r*8 + c))) break;
     }
 
     //LEFT DIAGONAL UP
     for(int r = rank + 1, c = file  - 1; c >= 0 && r <= RANK_8; c--, r++){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
-        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
+        if(blockers & get_square(static_cast<Square>(r*8 + c))) break;
     }
 
     //LEFT DIAGONAL DOWN
     for(int r = rank - 1, c = file - 1; c >= 0 && r >= 0; r--, c--){
-        attack_map |= get_square(static_cast<square>(r*8 + c));
-        if(blockers & get_square(static_cast<square>(r*8 + c))) break;
+        attack_map |= get_square(static_cast<Square>(r*8 + c));
+        if(blockers & get_square(static_cast<Square>(r*8 + c))) break;
     }
     return attack_map;
 }
@@ -133,7 +133,7 @@ uint64_t occupancy(int index, uint64_t attack_mask){
     uint64_t occup_map = 0;
 
     for(int i = 0; i < count; i++){
-        square s = static_cast<square>(get_lsb_index(attack_mask));
+        Square s = static_cast<Square>(get_lsb_index(attack_mask));
 
         attack_mask ^= get_square(s);
 
@@ -144,20 +144,20 @@ uint64_t occupancy(int index, uint64_t attack_mask){
     return occup_map;
 }
 
-uint64_t Table::find_magic(square square, Piece_type p){
+uint64_t Table::find_magic(Square Square, Piece_type p){
     std::array<uint64_t, 4096> occupancies;
     std::array<uint64_t, 4096> attacks;
     std::array<uint64_t, 4096> used_attacks;
 
-    uint64_t attack_mask = p == BISHOP ? mask_bishop_attack(square) : mask_rook_attack(square);
-    int occupancy_bitshift = 64 - (p == BISHOP ? bishop_occupancy_bits[square] : rook_occupancy_bits[square]);
+    uint64_t attack_mask = p == BISHOP ? mask_bishop_attack(Square) : mask_rook_attack(Square);
+    int occupancy_bitshift = 64 - (p == BISHOP ? bishop_occupancy_bits[Square] : rook_occupancy_bits[Square]);
     int num_bits = count_bits(attack_mask);
 
     for(int i = 0; i < (1 << num_bits); i++){
         occupancies[i] = occupancy(i, attack_mask);
 
-        attacks[i] = p == BISHOP ? mask_bishop_attack_ray(square, occupancies[i]) 
-                                    : mask_rook_attack_ray(square, occupancies[i]);
+        attacks[i] = p == BISHOP ? mask_bishop_attack_ray(Square, occupancies[i]) 
+                                    : mask_rook_attack_ray(Square, occupancies[i]);
     }
 
     for(int i = 0; i < 100000000; i++){
@@ -191,7 +191,7 @@ uint64_t Table::find_magic(square square, Piece_type p){
 
 void Table::fill_magic_table_rook(){
     for(int i = a8; i <= h1; i++){
-        uint64_t attack_mask = mask_rook_attack(static_cast<square>(i));
+        uint64_t attack_mask = mask_rook_attack(static_cast<Square>(i));
         rook_attack_table[i] = attack_mask;
 
         int num_bits = rook_occupancy_bits[i];
@@ -200,14 +200,14 @@ void Table::fill_magic_table_rook(){
 
             int magic_index = int((occup * rook_magics[i]) >> (64 - num_bits));
 
-            rook_table[i][magic_index] = mask_rook_attack_ray(static_cast<square>(i), occup);
+            rook_table[i][magic_index] = mask_rook_attack_ray(static_cast<Square>(i), occup);
         }
     }  
 }
 
 void Table::fill_magic_table_bishop(){
     for(int i = a8; i <= h1; i++){
-        uint64_t attack_mask = mask_bishop_attack(static_cast<square>(i));
+        uint64_t attack_mask = mask_bishop_attack(static_cast<Square>(i));
         bishop_attack_table[i] = attack_mask;
 
         int num_bits = bishop_occupancy_bits[i];
@@ -216,12 +216,12 @@ void Table::fill_magic_table_bishop(){
         
             int magic_index = int((occup * bishop_magics[i]) >> (64 - num_bits));
 
-            bishop_table[i][magic_index] = mask_bishop_attack_ray(static_cast<square>(i), occup);
+            bishop_table[i][magic_index] = mask_bishop_attack_ray(static_cast<Square>(i), occup);
         }
     }
 }
 
-uint64_t Table::generate_pawn_white(square s){
+uint64_t Table::generate_pawn_white(Square s){
     uint64_t board = get_square(s);
 
     uint64_t left_pawn_attack = (board & clear_file[FILE_A]) >> 9;
@@ -230,7 +230,7 @@ uint64_t Table::generate_pawn_white(square s){
     return (left_pawn_attack | right_pawn_attack);
 }
 
-uint64_t Table::generate_pawn_black(square s){
+uint64_t Table::generate_pawn_black(Square s){
     uint64_t board = get_square(s);
 
     uint64_t left_pawn_attack = (board & clear_file[FILE_A]) << 7;
@@ -238,7 +238,7 @@ uint64_t Table::generate_pawn_black(square s){
     return (left_pawn_attack | right_pawn_attack);
 }
 
-uint64_t Table::generate_king(square s){
+uint64_t Table::generate_king(Square s){
     uint64_t curr_board = get_square(s);
 
     uint64_t clear_file_h = curr_board & clear_file[FILE_H];
@@ -258,7 +258,7 @@ uint64_t Table::generate_king(square s){
     return valid_spots;
 }
 
-uint64_t Table::generate_knight(square s){
+uint64_t Table::generate_knight(Square s){
     /*
         knight has 8 spots to move to
             x1x2x  
@@ -292,10 +292,10 @@ uint64_t Table::generate_knight(square s){
 
 void Table::init_sliders(){
     for(int i = a8; i <= h1; i++){
-        king_attack_table[i] = generate_king(static_cast<square>(i));
-        knight_attack_table[i] = generate_knight(static_cast<square>(i));
-        pawn_attack_table[WHITE][i] =  generate_pawn_white(static_cast<square>(i));
-        pawn_attack_table[BLACK][i] = generate_pawn_black(static_cast<square>(i));
+        king_attack_table[i] = generate_king(static_cast<Square>(i));
+        knight_attack_table[i] = generate_knight(static_cast<Square>(i));
+        pawn_attack_table[WHITE][i] =  generate_pawn_white(static_cast<Square>(i));
+        pawn_attack_table[BLACK][i] = generate_pawn_black(static_cast<Square>(i));
     }
 }
 

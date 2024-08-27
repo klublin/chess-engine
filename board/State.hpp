@@ -1,10 +1,11 @@
+#pragma once
 #include <stack>
 #include "tables.hpp"
 
 class State{
 public:
     color side;
-    square enpessant;
+    Square enpessant;
     uint8_t castling_rights;
     Piece captured;
 

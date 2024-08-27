@@ -8,7 +8,7 @@ void print_bitboard(uint64_t board){
     for(int i = 0; i < 8; i++){
         std::cout << (8 - i) << "   ";
         for(int j = 0; j < 8; j++){
-            uint64_t mask = get_square(static_cast<square>(i*8+j));
+            uint64_t mask = get_square(static_cast<Square>(i*8+j));
             std::cout << ((board & mask) != 0 ? '1' : '0') << " ";
         }
         std::cout << "\n";
@@ -20,27 +20,27 @@ void print_bitboard(uint64_t board){
     std::cout << "\n";
 }
 
-inline void pop_bit(uint64_t& board, square s){
+inline void pop_bit(uint64_t& board, Square s){
     board &= ~(get_square(s));
 }
 
-inline void set_bit(uint64_t& board, square s){
+inline void set_bit(uint64_t& board, Square s){
     board |= (get_square(s));
 }
 
 
-inline uint64_t Board::get_pawn_attack(color c, square s){
+inline uint64_t Board::get_pawn_attack(color c, Square s){
     	return table.pawn_attack_table[c][s];
 }
 
-//checks if current square is attacked by given by the side 
-bool Board::attacked(square s, color side){
+//checks if current Square is attacked by given by the side 
+bool Board::attacked(Square s, color side){
 
-    //we wonder if the current square is being attacked by a black pawn. White pawns attack looks something like:
+    //we wonder if the current Square is being attacked by a black pawn. White pawns attack looks something like:
     /*
         1 0 1
         0 P 0
-        if we have a black pawn on any of those attack squares then it means that there is a black pawn attacking the current square
+        if we have a black pawn on any of those attack squares then it means that there is a black pawn attacking the current Square
         vice versa for white
     */
     if(get_pawn_attack(~side, s) & st.bitboards[P+side]) return true;
@@ -68,14 +68,14 @@ inline int Board::check_is_piece(char c){
 }
 
 void Board::read_fen(const std::string& fen){
-    //our enum square starts at a8, where the fen string starts 
+    //our enum Square starts at a8, where the fen string starts 
     int index = 0;
 
     for(int s = 0; s < 64; index++){
         int code = check_is_piece(fen[index]);
         
         if(code!= -1){
-            st.bitboards[code] |= get_square(static_cast<square>(s));
+            st.bitboards[code] |= get_square(static_cast<Square>(s));
             s++;
         }
         else if(fen[index] >= '1' && fen[index] <= '8'){
@@ -102,7 +102,7 @@ void Board::read_fen(const std::string& fen){
     }
     index++;
 
-    //en passant square
+    //en passant Square
     if(fen[index] == '-'){
         st.enpessant = none;
     }
@@ -111,7 +111,7 @@ void Board::read_fen(const std::string& fen){
         int rank = 8 - (fen[index] - '0');
         int s = rank * 8 + file;
 
-        st.enpessant = static_cast<square>(s);
+        st.enpessant = static_cast<Square>(s);
     }
 
     for(Piece_type pt : {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING}){
@@ -122,7 +122,7 @@ void Board::read_fen(const std::string& fen){
 }
 
 Piece Board::which_piece(const int s){
-    uint64_t board = get_square(static_cast<square>(s));
+    uint64_t board = get_square(static_cast<Square>(s));
     for(int i = 0; i < 12; i++){
         if((st.bitboards[i] & board) != 0)
             return static_cast<Piece>(i);
@@ -134,7 +134,7 @@ void Board::print(){
     for(int i = 0; i < 8; i++){
         std::cout << (8 - i) << "   ";
         for(int j = 0; j < 8; j++){
-            std::cout << table.symbol_map.at(which_piece(i*8+j)) << " ";
+            std::cout << table.pieces[which_piece(i*8+j)] << " ";
         }
         std::cout << "\n";
     }
@@ -187,7 +187,7 @@ void Board::unmake_move(Move m){
     history.pop();
 }
 
-inline void Board::update_bitboards(int piece, square source, square dest, color us){
+inline void Board::update_bitboards(int piece, Square source, Square dest, color us){
     pop_bit(st.bitboards[piece], source);
     set_bit(st.bitboards[piece], dest);
     pop_bit(st.occup[us], source);
@@ -204,11 +204,11 @@ bool Board::make_move(Move m){
     color them = ~us;
 
     Piece piece = static_cast<Piece>(m.piece());
-    square source = static_cast<square>(m.source());
-    square dest = static_cast<square>(m.target());
+    Square source = static_cast<Square>(m.source());
+    Square dest = static_cast<Square>(m.target());
 
     if(m.flags() & CAPTURE){
-		square cap_sq = dest;
+		Square cap_sq = dest;
 		if(m.flags() & ENPASSANT){
 			us == WHITE ? cap_sq += 8 : cap_sq -= 8;
 			st.enpessant = none;
@@ -249,16 +249,16 @@ bool Board::make_move(Move m){
     st.enpessant = none;
 
     if(m.flags() & DOUBLE){
-        us == WHITE ? st.enpessant = static_cast<square>(dest + 8) : st.enpessant = static_cast<square>(dest - 8);
+        us == WHITE ? st.enpessant = static_cast<Square>(dest + 8) : st.enpessant = static_cast<Square>(dest - 8);
     }
 
-    st.castling_rights &= table.castle_rights_table[source];
-    st.castling_rights &= table.castle_rights_table[dest];
+    st.castling_rights &= castle_rights_table[source];
+    st.castling_rights &= castle_rights_table[dest];
 
     st.side = them;
     st.occup[OCCUP_ALL] = st.occup[WHITE] | st.occup[BLACK];
 
-    square king_loc = static_cast<square>(get_lsb_index(st.bitboards[K+us]));
+    Square king_loc = static_cast<Square>(get_lsb_index(st.bitboards[K+us]));
     if(attacked(king_loc, st.side)){
         unmake_move(m);
         return false;
