@@ -1,4 +1,6 @@
 #pragma once
+#include "tables.hpp"
+#include <iostream>
 /*
 encoding of moves list
           binary move bits                               hexidecimal constants
@@ -26,4 +28,11 @@ public:
     inline int enpassant() const { return (data & 0x400000); }
     inline int castling() const { return (data & 0x800000); }
     inline int flags() const { return (data & 0xF00000) >> 20; }
+    static inline Move none(){return Move();}
+
+    constexpr bool operator==(const Move& m) const {return data == m.data;};
+    constexpr bool operator!=(const Move& m) const {return data != m.data;};
+    void print(Table& t){
+        std::cout << t.square_map[source()] << t.square_map[target()] << (promoted() ? t.pieces[promoted()] : char(0)) << "\n";
+    }
 };
