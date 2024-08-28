@@ -69,17 +69,18 @@ inline int Board::check_is_piece(char c){
 
 void Board::read_fen(const std::string& fen){
     //our enum Square starts at a8, where the fen string starts 
+    st.clear();
     int index = 0;
 
-    for(int s = 0; s < 64; index++){
+    for(int square = 0; square < 64; index++){
         int code = check_is_piece(fen[index]);
         
         if(code!= -1){
-            st.bitboards[code] |= get_square(static_cast<Square>(s));
-            s++;
+            st.bitboards[code] |= get_square(static_cast<Square>(square));
+            square++;
         }
         else if(fen[index] >= '1' && fen[index] <= '8'){
-            s += (fen[index] - '0');
+            square += (fen[index] - '0');
         }
     }
     //should be a space now
@@ -115,10 +116,10 @@ void Board::read_fen(const std::string& fen){
     }
 
     for(Piece_type pt : {PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING}){
-        st.occup[OCCUP_WHITE] |= st.bitboards[pt];
-        st.occup[OCCUP_BLACK] |= st.bitboards[pt+BLACK];
+        st.occup[WHITE] |= st.bitboards[pt];
+        st.occup[BLACK] |= st.bitboards[pt+BLACK];
     }
-    st.occup[OCCUP_ALL] = st.occup[OCCUP_WHITE] | st.occup[OCCUP_BLACK];
+    st.occup[OCCUP_ALL] = st.occup[WHITE] | st.occup[BLACK];
 }
 
 Piece Board::which_piece(const int s){
@@ -134,7 +135,7 @@ void Board::print(){
     for(int i = 0; i < 8; i++){
         std::cout << (8 - i) << "   ";
         for(int j = 0; j < 8; j++){
-            std::cout << table.pieces[which_piece(i*8+j)] << " ";
+            std::cout << table.pieces[which_piece((i*8+j))] << " ";
         }
         std::cout << "\n";
     }

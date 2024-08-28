@@ -21,6 +21,10 @@ public:
     //     castling_rights = t.castling_rights;
     //     captured = t.captured;
     // }
+    void clear(){
+        bitboards.fill(0);
+        occup.fill(0);
+    }
 };
 
 

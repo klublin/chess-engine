@@ -118,7 +118,7 @@ public:
         0x4080008040102101, 0x40002080411d01, 0x2005524060000901, 0x502001008400422, 0x489a000810200402, 0x1004400080a13, 0x4000011008020084, 0x26002114058042
     };
 
-    const std::array<char, 12> pieces = { 'P', 'p', 'N', 'n', 'B', 'b', 'R', 'r', 'Q', 'q', 'K', 'k' };
+    const std::array<char, 13> pieces = { 'P', 'p', 'N', 'n', 'B', 'b', 'R', 'r', 'Q', 'q', 'K', 'k', ' ' };
 
     std::array<std::array<uint64_t, 4096>, 64> rook_table;
     std::array<std::array<uint64_t, 512>, 64> bishop_table;

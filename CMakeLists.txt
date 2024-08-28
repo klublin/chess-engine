@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(chess_engine)
 
-add_compile_options(-Wall -O2 -Werror -funroll-loops)
+add_compile_options(-Wall -g -Werror -funroll-loops)
 add_executable(chess main.cpp)
 
 add_subdirectory(board)

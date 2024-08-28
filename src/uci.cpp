@@ -113,6 +113,7 @@ void UCI::loop(){
             std::cout << "id name kevbot\nid name klublin\nuciok\n";
         }
         else if(token == "d"){
+            std::cout << "\n";
             print();
         }
     }
