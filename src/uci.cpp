@@ -3,6 +3,8 @@
 #include "MoveGenerator.hpp"
 #include <algorithm>
 
+Table& UCI::t = Table::get_instance();
+
 std::string UCI::str_move(const Move& m){
     std::string move;
     move += t.square_map[m.source()];
@@ -75,7 +77,22 @@ void UCI::parse_go(std::istringstream& is){
     if(!(is >> depth)){
         depth=6;
     }
+    //search position
+    
+    int score = s.negamax(board, Extremes::MIN, Extremes::MAX, depth);
+    std::cout << "finished!\n";
+    if(s.best_move!= Move::none()){
+        std::cout << "info score cp " << score << " depth " << depth << " nodes " << s.nodes << "\n";
 
+        std::cout << "bestmove ";
+        s.best_move.print(t);
+        std::cout << "\n";
+
+        s.best_move = Move::none();
+    }
+    else{
+        std::cout << "search failed\n";
+    }
 }
 
 void UCI::print(){
@@ -116,11 +133,17 @@ void UCI::loop(){
             std::cout << "\n";
             print();
         }
-    }
-}
+        else if(token == "move"){
+            std::string user_move;
+            is >> user_move;
+            Move m = to_move(user_move);
 
-int main(){
-    UCI u;
-    
-    u.loop();
+            if(m != Move::none()){
+                board.make_move(m);
+            }
+            else{
+                std::cout << "please input the correct move\n";
+            }
+        }
+    }
 }

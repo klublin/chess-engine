@@ -106,6 +106,11 @@ enum Flags{
     CASTLING=8
 };
 
+enum Extremes{
+    MAX = 50000,
+    MIN = -50000 
+};
+
 static inline uint64_t get_square(Square s){
     return 1ULL << s;
 }

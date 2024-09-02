@@ -62,11 +62,7 @@ public:
     } 
     
     void read_fen(const std::string&);
-
-    //todo add check(the chess one) boolean for both white and black maybe?
-    bool white_check;
-    bool black_check;
-
+    
     bool attacked(Square, color);
     
     void unmake_move(Move m);

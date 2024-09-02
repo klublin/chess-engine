@@ -1,33 +1,18 @@
 #include <iostream>
 #include <string>
-#include "board.hpp"
+#include "uci.hpp"
+#include "eval.hpp"
 
 /*
     Inital goal, play a game of chess on the commandline
 */
 
-// int main(){
-//     std::string input;
-//     std::string output;
-//     Board b;
+int main(){
+    Board b("rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1");
 
-//     b.print();
+    std::cout << Evaluation::score_material(b.st) << "\n";
 
-//     std::cout << "hi! Welcome to a chess engine. Type end at the end of game to end the game\n";
-//     std::cout << "To input a move type the chess notation, the engine will respond with its own move\n";
+    // Search s;
 
-//     while(true){
-//         std::cin >> input;
-
-
-//         if(input == "end"){
-//             break;
-//         }
-        
-//         b.update(input, output);
-//         b.print();
-//     }
-
-
-
-// }
+    // s.negamax(b, Extremes::MIN, Extremes::MAX, 2);
+}
