@@ -9,5 +9,5 @@ class Evaluation{
     template<color c>
     static inline int score_board(uint64_t board, int piece);
 public:
-    static int score_material(State& st);
+    static int score_material(State* st);
 };

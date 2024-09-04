@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <iostream>
+#include <algorithm>
 #include "board.hpp"
 #include "Move.hpp"
 
@@ -30,8 +31,14 @@ struct move_list{
         std::cout << "move count = " << count << "\n";
     }
 
-    const Move* begin() const {return moves;}
-    const Move* end() const {return &moves[count];};
+    Move* begin() {return moves;}
+    Move* end() {return &moves[count];};
+
+    inline void sort(State *st, int ply){
+        std::sort(begin(), end(), [st, ply](Move& a, Move& b){
+            return a.score(st, ply) > b.score(st, ply);
+        });
+    }
 };
 
 move_list generate_all(Board& board);

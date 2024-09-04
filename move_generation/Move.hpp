@@ -1,5 +1,6 @@
 #pragma once
 #include "tables.hpp"
+#include "State.hpp"
 #include <iostream>
 /*
 encoding of moves list
@@ -16,6 +17,7 @@ encoding of moves list
 */
 class Move{
     int data;
+    static std::array<std::array<int, 12>, 12> mva_table;
 public:
     Move() : data(0){}
     Move(int source, int target, int piece, int promoted, int flags) : data((source) | (target << 6) | (piece << 12) | (promoted << 16) | (flags << 20)){}
@@ -35,4 +37,6 @@ public:
     void print(Table& t){
         std::cout << t.square_map[source()] << t.square_map[target()] << (promoted() ? t.pieces[promoted()] : char(0)) << "\n";
     }
+
+    int score(State *st, int ply) const;
 };

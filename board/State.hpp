@@ -25,6 +25,15 @@ public:
         bitboards.fill(0);
         occup.fill(0);
     }
+
+    Piece which_piece(const Square s){
+        uint64_t board = get_square(static_cast<Square>(s));
+        for(int i = 0; i < 12; i++){
+            if((bitboards[i] & board) != 0)
+                return static_cast<Piece>(i);
+        }
+        return no_piece;
+    }
 };
 
 

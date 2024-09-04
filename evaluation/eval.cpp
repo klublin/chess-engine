@@ -155,16 +155,16 @@ inline int Evaluation::score_board(uint64_t board, int piece){
     return score;
 }
 
-int Evaluation::score_material(State& st){
+int Evaluation::score_material(State* st){
     int score = 0;
 
     for(Piece_type pt : {PAWN, KNIGHT, BISHOP, ROOK, KING}){
-        uint64_t white_board = st.bitboards[pt];
-        uint64_t black_board = st.bitboards[pt + BLACK];
+        uint64_t white_board = st->bitboards[pt];
+        uint64_t black_board = st->bitboards[pt + BLACK];
 
         score += score_board<WHITE>(white_board, pt);
         score += score_board<BLACK>(black_board, pt + BLACK);
     }
 
-    return st.side == WHITE ? score : -score;
+    return st->side == WHITE ? score : -score;
 }

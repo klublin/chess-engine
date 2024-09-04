@@ -8,9 +8,8 @@
 */
 
 int main(){
-    Board b("rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 1");
-
-    std::cout << Evaluation::score_material(b.st) << "\n";
+    UCI u;
+    u.loop();
 
     // Search s;
 

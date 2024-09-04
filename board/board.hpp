@@ -67,6 +67,12 @@ public:
     
     void unmake_move(Move m);
     bool make_move(Move m);
+    inline bool make_capture(Move m){
+        if(m.capture()!= 0){
+            make_move(m);
+        }
+        return false;
+    }
 
     void print();
 

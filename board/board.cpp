@@ -122,20 +122,13 @@ void Board::read_fen(const std::string& fen){
     st.occup[OCCUP_ALL] = st.occup[WHITE] | st.occup[BLACK];
 }
 
-Piece Board::which_piece(const int s){
-    uint64_t board = get_square(static_cast<Square>(s));
-    for(int i = 0; i < 12; i++){
-        if((st.bitboards[i] & board) != 0)
-            return static_cast<Piece>(i);
-    }
-    return no_piece;
-}
+
 
 void Board::print(){
     for(int i = 0; i < 8; i++){
         std::cout << (8 - i) << "   ";
         for(int j = 0; j < 8; j++){
-            std::cout << table.pieces[which_piece((i*8+j))] << " ";
+            std::cout << table.pieces[st.which_piece(static_cast<Square>(i*8+j))] << " ";
         }
         std::cout << "\n";
     }
@@ -214,7 +207,7 @@ bool Board::make_move(Move m){
 			us == WHITE ? cap_sq += 8 : cap_sq -= 8;
 			st.enpessant = none;
 		}
-		Piece captured = static_cast<Piece>(which_piece(cap_sq));
+		Piece captured = st.which_piece(cap_sq);
 		
 		pop_bit(st.bitboards[captured], cap_sq);
 		pop_bit(st.occup[~us], cap_sq);

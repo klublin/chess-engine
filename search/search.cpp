@@ -21,8 +21,8 @@ std::array<std::array<int, 12>, 12> Search::mva_table{{
 
 int Search::quiescence(Board& b, int alpha, int beta){
     nodes++;
-
-    int evaluation = Evaluation::score_material(b.st);
+    State *st = b.get_state();
+    int evaluation = Evaluation::score_material(st);
 
     if(evaluation >= beta){
         return beta;
@@ -32,10 +32,13 @@ int Search::quiescence(Board& b, int alpha, int beta){
         alpha = evaluation;
     }
 
-    for(const auto& m : generate_all(b)){
+    move_list l = generate_all(b);
+    l.sort(st, ply);
+
+    for(const auto& m : l){
         ply++;
 
-        if(!b.make_move(m)){
+        if(!b.make_capture(m)){
             ply--;
             continue;
         }
@@ -57,9 +60,7 @@ int Search::quiescence(Board& b, int alpha, int beta){
 }   
 
 int Search::negamax(Board& b, int alpha, int beta, int depth){
-    std::cout << "depth " << depth << "\n";
     if(depth == 0){
-        std::cout << alpha << " " << beta << "\n";
         return quiescence(b, alpha, beta);
     }
     State *st = b.get_state();
@@ -72,7 +73,10 @@ int Search::negamax(Board& b, int alpha, int beta, int depth){
 
     int old_alpha = alpha;
 
-    for(const auto& m : generate_all(b)){
+    move_list l = generate_all(b);
+    l.sort(st, ply);
+
+    for(const auto& m : l){
         ply++;
         if(!b.make_move(m)){
             ply--;
