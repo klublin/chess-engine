@@ -173,6 +173,7 @@ void Board::print(){
     else{
         std::cout << "-\n";
     }
+    std::cout << "side to play " << (st.side == WHITE ? 'W' : 'B') << "\n";
     std::cout << "\n";
 }
 
@@ -208,7 +209,11 @@ bool Board::make_move(Move m){
 			st.enpessant = none;
 		}
 		Piece captured = st.which_piece(cap_sq);
-		
+        if(captured == no_piece){
+            m.print(table);
+            print();
+            assert(false);
+        }
 		pop_bit(st.bitboards[captured], cap_sq);
 		pop_bit(st.occup[~us], cap_sq);
     }

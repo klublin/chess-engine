@@ -16,17 +16,18 @@ struct move_list{
         moves[count++] = Move(source, target, piece, promoted, flags);
     }
 
-    void print(){
-        printf("\n     move    piece     capture   double    enpass    castling promoted\n\n");
+    void print(State *st, int ply){
+        printf("\n     move    piece     capture   double    enpass    castling promoted  score\n\n");
         for(int i = 0; i < count; i++){
-            printf("      %s%s   %c         %d         %d         %d         %d        %c\n", t.square_map[moves[i].source()].c_str(), 
+            printf("      %s%s   %c         %d         %d         %d         %d        %c         %d\n", t.square_map[moves[i].source()].c_str(), 
                 t.square_map[moves[i].target()].c_str(), 
                 t.pieces[moves[i].piece()],
                 moves[i].capture() ? 1 : 0,
                 moves[i].double_push() ? 1 : 0,
                 moves[i].enpassant() ? 1 : 0,
                 moves[i].castling() ? 1 : 0,
-                moves[i].promoted() ? t.pieces[moves[i].promoted()] : '-');
+                moves[i].promoted() ? t.pieces[moves[i].promoted()] : '-',
+                moves[i].score(st, ply));
         }
         std::cout << "move count = " << count << "\n";
     }
@@ -34,6 +35,7 @@ struct move_list{
     Move* begin() {return moves;}
     Move* end() {return &moves[count];};
 
+    int score_move(Board&, Move);
     inline void sort(State *st, int ply){
         std::sort(begin(), end(), [st, ply](Move& a, Move& b){
             return a.score(st, ply) > b.score(st, ply);

@@ -1,7 +1,7 @@
 #include "MoveGenerator.hpp"
 #include <chrono>
 #include <iostream>
-
+#include <cassert>
 
 uint64_t perft(Board& b, int depth){
     if(depth == 0){
@@ -11,6 +11,7 @@ uint64_t perft(Board& b, int depth){
 
     uint64_t nodes = 0;
     for(const auto& m : l){
+        assert(m.piece() <= 11);
         if(!b.make_move(m))
             continue;
         nodes += perft(b, depth - 1);

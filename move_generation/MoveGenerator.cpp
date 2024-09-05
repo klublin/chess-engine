@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cassert>
 #include "MoveGenerator.hpp"
 
 template<color c>

@@ -2,6 +2,7 @@
 #include "eval.hpp"
 #include "MoveGenerator.hpp"
 #include "search.hpp"
+#include <cassert>
 
 std::array<std::array<int, 12>, 12> Search::mva_table{{
    { 105, 205, 305, 405, 505, 605, 105, 205, 305, 405, 505, 605, },
@@ -33,6 +34,14 @@ int Search::quiescence(Board& b, int alpha, int beta){
     }
 
     move_list l = generate_all(b);
+
+    // for(const auto& m : l){
+    //     if(m.source() == d5 && m.target() == c6 && m.capture()){
+    //         std::cout << Table::get_instance().pieces[m.piece()] << " " << m.capture() << "\n";
+    //         b.print();
+    //         assert(false);
+    //     }
+    // }
     l.sort(st, ply);
 
     for(const auto& m : l){
@@ -74,7 +83,16 @@ int Search::negamax(Board& b, int alpha, int beta, int depth){
     int old_alpha = alpha;
 
     move_list l = generate_all(b);
+
+    
+    // for(const auto& m : l){
+    //     if(m.source() == d5 && m.target() == c6 && m.capture()){
+    //         b.print();
+    //         assert(false);
+    //     }
+    // }
     l.sort(st, ply);
+
 
     for(const auto& m : l){
         ply++;

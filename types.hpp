@@ -89,6 +89,8 @@ enum Rank {
 
 enum Piece{ P, p, N, n, B, b, R, r, Q, q, K, k, no_piece};
 
+inline Piece operator+(Piece a, color b) { return static_cast<Piece>(int(a) + int(b));}
+
 enum Piece_type{    
     PAWN = P, 
     KNIGHT = N, 

@@ -69,14 +69,14 @@ public:
     bool make_move(Move m);
     inline bool make_capture(Move m){
         if(m.capture()!= 0){
-            make_move(m);
+            return make_move(m);
         }
         return false;
     }
 
     void print();
 
-    void debug(uint64_t); 
+    static void debug(uint64_t); 
 
     Board(const std::string &s) : table(Table::get_instance()){read_fen(s);}
     Board() : table(Table::get_instance()) {}

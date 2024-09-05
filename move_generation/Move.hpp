@@ -32,11 +32,13 @@ public:
     inline int flags() const { return (data & 0xF00000) >> 20; }
     static inline Move none(){return Move();}
 
+
+    int score(State *st, int ply) const;
     constexpr bool operator==(const Move& m) const {return data == m.data;};
     constexpr bool operator!=(const Move& m) const {return data != m.data;};
-    void print(Table& t){
+    void print(Table& t) const{
         std::cout << t.square_map[source()] << t.square_map[target()] << (promoted() ? t.pieces[promoted()] : char(0)) << "\n";
     }
 
-    int score(State *st, int ply) const;
+    
 };
