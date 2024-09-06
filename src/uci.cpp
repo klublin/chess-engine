@@ -77,22 +77,8 @@ void UCI::parse_go(std::istringstream& is){
     if(!(is >> depth)){
         depth=6;
     }
-    //search position
-    
-    int score = s.negamax(board, Extremes::MIN, Extremes::MAX, depth);
-    std::cout << "finished!\n";
-    if(s.best_move!= Move::none()){
-        std::cout << "info score cp " << score << " depth " << depth << " nodes " << s.nodes << "\n";
-
-        std::cout << "bestmove ";
-        s.best_move.print(t);
-        std::cout << "\n";
-
-        s.best_move = Move::none();
-    }
-    else{
-        std::cout << "search failed\n";
-    }
+    //call search function, the function will print out the relevaent moves
+    s.begin_search(board, depth);
 }
 
 void UCI::print(){

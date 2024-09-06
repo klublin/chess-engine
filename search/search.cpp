@@ -4,22 +4,6 @@
 #include "search.hpp"
 #include <cassert>
 
-std::array<std::array<int, 12>, 12> Search::mva_table{{
-   { 105, 205, 305, 405, 505, 605, 105, 205, 305, 405, 505, 605, },
-   { 104, 204, 304, 404, 504, 604, 104, 204, 304, 404, 504, 604, },
-   { 103, 203, 303, 403, 503, 603, 103, 203, 303, 403, 503, 603, },
-   { 102, 202, 302, 402, 502, 602, 102, 202, 302, 402, 502, 602, },
-   { 101, 201, 301, 401, 501, 601, 101, 201, 301, 401, 501, 601, },
-   { 100, 200, 300, 400, 500, 600, 100, 200, 300, 400, 500, 600, },
-   { 105, 205, 305, 405, 505, 605, 105, 205, 305, 405, 505, 605, },
-   { 104, 204, 304, 404, 504, 604, 104, 204, 304, 404, 504, 604, },
-   { 103, 203, 303, 403, 503, 603, 103, 203, 303, 403, 503, 603, },
-   { 102, 202, 302, 402, 502, 602, 102, 202, 302, 402, 502, 602, },
-   { 101, 201, 301, 401, 501, 601, 101, 201, 301, 401, 501, 601, },
-   { 100, 200, 300, 400, 500, 600, 100, 200, 300, 400, 500, 600, },
-}};
-
-
 int Search::quiescence(Board& b, int alpha, int beta){
     nodes++;
     State *st = b.get_state();
@@ -33,18 +17,7 @@ int Search::quiescence(Board& b, int alpha, int beta){
         alpha = evaluation;
     }
 
-    move_list l = generate_all(b);
-
-    // for(const auto& m : l){
-    //     if(m.source() == d5 && m.target() == c6 && m.capture()){
-    //         std::cout << Table::get_instance().pieces[m.piece()] << " " << m.capture() << "\n";
-    //         b.print();
-    //         assert(false);
-    //     }
-    // }
-    l.sort(st, ply);
-
-    for(const auto& m : l){
+    for(const auto& m : generate_all(b).sort(st, ply)){
         ply++;
 
         if(!b.make_capture(m)){
@@ -69,32 +42,25 @@ int Search::quiescence(Board& b, int alpha, int beta){
 }   
 
 int Search::negamax(Board& b, int alpha, int beta, int depth){
+    pv_length[ply] = ply;
     if(depth == 0){
         return quiescence(b, alpha, beta);
     }
+
+    if(ply > (Extremes::MAX_PLY - 1)){
+        return Evaluation::score_material(b.get_state());
+    }
+
     State *st = b.get_state();
     nodes++;
 
-    Move best_so_far;
-
     bool in_check = b.attacked(static_cast<Square>(get_lsb_index(st->bitboards[K + st->side])), ~st->side);
+
+    if(in_check) depth++;
     int legal_moves = 0;
 
-    int old_alpha = alpha;
 
-    move_list l = generate_all(b);
-
-    
-    // for(const auto& m : l){
-    //     if(m.source() == d5 && m.target() == c6 && m.capture()){
-    //         b.print();
-    //         assert(false);
-    //     }
-    // }
-    l.sort(st, ply);
-
-
-    for(const auto& m : l){
+    for(const auto& m : generate_all(b).sort(st, ply)){
         ply++;
         if(!b.make_move(m)){
             ply--;
@@ -109,15 +75,29 @@ int Search::negamax(Board& b, int alpha, int beta, int depth){
         b.unmake_move(m);
 
         if(score >= beta){
+            if(m.capture() == 0){
+                Table&t = b.table;
+                t.killer_moves[1][ply] = t.killer_moves[0][ply];
+                t.killer_moves[0][ply] = m.get_data();
+            }
+
             return beta;
         }
 
         if(score > alpha){
+            if(m.capture() == 0){
+                Table&t = b.table;
+                t.history_moves[m.piece()][m.target()] += depth;
+            }
             alpha = score;
 
-            if(ply == 0){
-                best_so_far = m;
+            pv_table[ply][ply] = m;
+
+            for(int next_ply = ply + 1; next_ply < pv_length[ply + 1]; next_ply++){
+                pv_table[ply][next_ply] = pv_table[ply + 1][next_ply];
             }
+
+            pv_length[ply] = pv_length[ply+1];
         }
 
     }
@@ -129,8 +109,29 @@ int Search::negamax(Board& b, int alpha, int beta, int depth){
         return 0;
     }
 
-    if(old_alpha!= alpha){
-        best_move = best_so_far;
-    }
     return alpha;
+}
+
+
+void Search::begin_search(Board& board, int depth){
+    Table& t = Table::get_instance();
+    t.history_moves.fill({0});
+    t.killer_moves.fill({0});
+    pv_length.fill(0);
+    pv_table.fill({Move::none()});
+    ply = 0;
+    nodes = 0;
+    
+    for(int curr_depth = 1; curr_depth <= depth; curr_depth++){
+        int score = negamax(board, Extremes::MIN, Extremes::MAX, curr_depth);
+        std::cout << "info score cp " << score << " depth " << curr_depth << " nodes " << nodes << " ";
+
+        for(int i = 0; i < pv_length[0]; i++){
+            pv_table[0][i].print(t);
+        }
+        std::cout << "\n";
+    }
+
+    std::cout << "bestmove ";
+    pv_table[0][0].print(Table::get_instance());
 }

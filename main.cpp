@@ -9,14 +9,8 @@
 */
 
 int main(){
-    Board b(tricky_position);
-
-    b.print();
-
-    move_list l = generate_all(b);
-    l.sort(b.get_state(), 0);
-
-    l.print(b.get_state(), 0);
+    UCI u;
+    u.loop();
 
     // Board b(tricky_position);
     // Search s;

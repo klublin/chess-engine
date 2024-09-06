@@ -129,6 +129,9 @@ public:
     std::array<std::array<uint64_t, 64>, 64> pawn_attack_table;
     std::array<uint64_t, 64> knight_attack_table;
 
+    std::array<std::array<int, 64>, 2> killer_moves;
+    std::array<std::array<int, 64>, 12> history_moves;
+
     static Table& get_instance(){
         static Table t;
         return t;

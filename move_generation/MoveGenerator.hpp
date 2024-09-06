@@ -35,11 +35,11 @@ struct move_list{
     Move* begin() {return moves;}
     Move* end() {return &moves[count];};
 
-    int score_move(Board&, Move);
-    inline void sort(State *st, int ply){
+    inline move_list sort(State *st, int ply){
         std::sort(begin(), end(), [st, ply](Move& a, Move& b){
             return a.score(st, ply) > b.score(st, ply);
         });
+        return *this;
     }
 };
 

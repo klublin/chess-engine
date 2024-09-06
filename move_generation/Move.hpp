@@ -37,8 +37,11 @@ public:
     constexpr bool operator==(const Move& m) const {return data == m.data;};
     constexpr bool operator!=(const Move& m) const {return data != m.data;};
     void print(Table& t) const{
-        std::cout << t.square_map[source()] << t.square_map[target()] << (promoted() ? t.pieces[promoted()] : char(0)) << "\n";
+        std::cout << t.square_map[source()] << t.square_map[target()] << (promoted() ? t.pieces[promoted()] : char(0)) << " ";
     }
 
+    int get_data() const{
+        return data;
+    }
     
 };

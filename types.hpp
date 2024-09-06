@@ -110,7 +110,8 @@ enum Flags{
 
 enum Extremes{
     MAX = 50000,
-    MIN = -50000 
+    MIN = -50000,
+    MAX_PLY=64
 };
 
 static inline uint64_t get_square(Square s){
