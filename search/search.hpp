@@ -1,16 +1,22 @@
 #pragma once
+#include "Heuristics.hpp"
 #include "board.hpp"
 
+
+
+
 class Search{
+    Heuristics heuristics;
 public:
     int ply;
     uint64_t nodes;
     int max_depth;
-    std::array<std::array<Move, 64>, 64> pv_table;
-    std::array<int, 64> pv_length;
-    Search() : ply(0), nodes(0), max_depth(0), pv_table{}, pv_length{} {}
+
+    Search() : heuristics(), ply(0), nodes(0), max_depth(0){}
     
     int negamax(Board& b, int alpha, int beta, int depth);
     int quiescence(Board& b, int alpha, int beta);
-    void begin_search(Board& board, int depth);
+    Heuristics* get_heuristic() { return &heuristics;}
 };
+
+

@@ -1,7 +1,8 @@
 #pragma once
+#include <iostream>
 #include "tables.hpp"
 #include "State.hpp"
-#include <iostream>
+
 /*
 encoding of moves list
           binary move bits                               hexidecimal constants
@@ -15,6 +16,8 @@ encoding of moves list
     0100 0000 0000 0000 0000 0000    enpassant flag      0x400000
     1000 0000 0000 0000 0000 0000    castling flag       0x800000
 */
+struct Heuristics;
+
 class Move{
     int data;
     static std::array<std::array<int, 12>, 12> mva_table;
@@ -32,8 +35,7 @@ public:
     inline int flags() const { return (data & 0xF00000) >> 20; }
     static inline Move none(){return Move();}
 
-
-    int score(State *st, int ply) const;
+    int score(State *st, int ply, Heuristics& h) const;
     constexpr bool operator==(const Move& m) const {return data == m.data;};
     constexpr bool operator!=(const Move& m) const {return data != m.data;};
     void print(Table& t) const{
@@ -45,3 +47,6 @@ public:
     }
     
 };
+
+//place at bottom for compiler
+#include "Heuristics.hpp"

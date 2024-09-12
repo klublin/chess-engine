@@ -20,7 +20,7 @@ std::array<std::array<int, 12>, 12> Move::mva_table{{
     {100, 0, 200, 0, 300, 0, 400, 0, 500, 0, 600, 0, }, 
 }};
 
-int Move::score(State *st, int ply) const{
+int Move::score(State *st, int ply, Heuristics& h) const{
    if(capture()){
       Square dest = static_cast<Square>(target());
       Piece taken;
@@ -37,14 +37,13 @@ int Move::score(State *st, int ply) const{
       return mva_table[piece()][taken] + 10000;
    }
     else{
-        Table& table = Table::get_instance();
-        if(table.killer_moves[0][ply] == data){
+        if(h.killer_moves[0][ply] == data){
             return 9000;
         }
-        else if(table.killer_moves[1][ply] == data){
+        else if(h.killer_moves[1][ply] == data){
             return 8000;
         }
-        return table.history_moves[piece()][target()];
+        return h.history_moves[piece()][target()];
     }
 
     return 0;

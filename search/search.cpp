@@ -17,7 +17,7 @@ int Search::quiescence(Board& b, int alpha, int beta){
         alpha = evaluation;
     }
 
-    for(const auto& m : generate_all(b).sort(st, ply)){
+    for(const auto& m : generate_all(b).sort(st, ply, heuristics)){
         ply++;
 
         if(!b.make_capture(m)){
@@ -42,7 +42,7 @@ int Search::quiescence(Board& b, int alpha, int beta){
 }   
 
 int Search::negamax(Board& b, int alpha, int beta, int depth){
-    pv_length[ply] = ply;
+    heuristics.pv_length[ply] = ply;
     if(depth == 0){
         return quiescence(b, alpha, beta);
     }
@@ -59,8 +59,7 @@ int Search::negamax(Board& b, int alpha, int beta, int depth){
     if(in_check) depth++;
     int legal_moves = 0;
 
-
-    for(const auto& m : generate_all(b).sort(st, ply)){
+    for(const auto& m : generate_all(b).sort(st, ply, heuristics)){
         ply++;
         if(!b.make_move(m)){
             ply--;
@@ -76,9 +75,8 @@ int Search::negamax(Board& b, int alpha, int beta, int depth){
 
         if(score >= beta){
             if(m.capture() == 0){
-                Table&t = b.table;
-                t.killer_moves[1][ply] = t.killer_moves[0][ply];
-                t.killer_moves[0][ply] = m.get_data();
+                heuristics.killer_moves[1][ply] = heuristics.killer_moves[0][ply];
+                heuristics.killer_moves[0][ply] = m.get_data();
             }
 
             return beta;
@@ -86,18 +84,17 @@ int Search::negamax(Board& b, int alpha, int beta, int depth){
 
         if(score > alpha){
             if(m.capture() == 0){
-                Table&t = b.table;
-                t.history_moves[m.piece()][m.target()] += depth;
+                heuristics.history_moves[m.piece()][m.target()] += depth;
             }
             alpha = score;
 
-            pv_table[ply][ply] = m;
+            heuristics.pv_table[ply][ply] = m;
 
-            for(int next_ply = ply + 1; next_ply < pv_length[ply + 1]; next_ply++){
-                pv_table[ply][next_ply] = pv_table[ply + 1][next_ply];
+            for(int next_ply = ply + 1; next_ply < heuristics.pv_length[ply + 1]; next_ply++){
+                heuristics.pv_table[ply][next_ply] = heuristics.pv_table[ply + 1][next_ply];
             }
 
-            pv_length[ply] = pv_length[ply+1];
+            heuristics.pv_length[ply] = heuristics.pv_length[ply+1];
         }
 
     }
@@ -110,28 +107,4 @@ int Search::negamax(Board& b, int alpha, int beta, int depth){
     }
 
     return alpha;
-}
-
-
-void Search::begin_search(Board& board, int depth){
-    Table& t = Table::get_instance();
-    t.history_moves.fill({0});
-    t.killer_moves.fill({0});
-    pv_length.fill(0);
-    pv_table.fill({Move::none()});
-    ply = 0;
-    nodes = 0;
-    
-    for(int curr_depth = 1; curr_depth <= depth; curr_depth++){
-        int score = negamax(board, Extremes::MIN, Extremes::MAX, curr_depth);
-        std::cout << "info score cp " << score << " depth " << curr_depth << " nodes " << nodes << " ";
-
-        for(int i = 0; i < pv_length[0]; i++){
-            pv_table[0][i].print(t);
-        }
-        std::cout << "\n";
-    }
-
-    std::cout << "bestmove ";
-    pv_table[0][0].print(Table::get_instance());
 }

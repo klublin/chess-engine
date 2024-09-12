@@ -70,6 +70,8 @@ void UCI::parse_position(std::istringstream& is){
 
 void UCI::parse_go(std::istringstream& is){
     std::string token;
+    Search s;
+    Heuristics *h = s.get_heuristic();
     int depth;
 
     is >> token;
@@ -77,8 +79,20 @@ void UCI::parse_go(std::istringstream& is){
     if(!(is >> depth)){
         depth=6;
     }
-    //call search function, the function will print out the relevaent moves
-    s.begin_search(board, depth);
+    
+    for(int curr_depth = 1; curr_depth <= depth; curr_depth++){
+        int score = s.negamax(board, Extremes::MIN, Extremes::MAX, curr_depth);
+        std::cout << "info score cp " << score << " depth " << curr_depth << " nodes " << s.nodes << " ";
+
+        for(int i = 0; i < h->pv_length[0]; i++){
+            h->pv_table[0][i].print(t);
+        }
+        std::cout << "\n";
+    }
+
+    std::cout << "bestmove ";
+    h->pv_table[0][0].print(Table::get_instance());
+    std::cout << "\n";
 }
 
 void UCI::print(){
