@@ -95,7 +95,14 @@ void UCI::parse_go(std::istringstream& is){
         // set up the window for the next iteration
         alpha = score - 50;
         beta = score + 50;
-        std::cout << "info score cp " << score << " depth " << curr_depth << " nodes " << s.nodes << " ";
+
+        if (score > -MATE_VALUE && score < -MATE_SCORE)
+            printf("info score mate %d depth %d nodes %ld pv ", -(score + MATE_VALUE) / 2 - 1, curr_depth, s.nodes);
+        
+        else if (score > MATE_SCORE && score < MATE_VALUE)
+            printf("info score mate %d depth %d nodes %ld pv ", (MATE_VALUE - score) / 2 + 1, curr_depth, s.nodes);
+        else 
+            std::cout << "info score cp " << score << " depth " << curr_depth << " nodes " << s.nodes << " pv ";
 
         for(int i = 0; i < h->pv_length[0]; i++){
             h->pv_table[0][i].print();
@@ -132,6 +139,7 @@ void UCI::loop(){
         }
         else if(token == "position"){
             parse_position(is);
+            tt.clear_table();
         }
         else if(token == "go"){
             parse_go(is);

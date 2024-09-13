@@ -50,8 +50,8 @@ int Search::negamax(Board& b, Transposition_table& tt, int alpha, int beta, int 
     State *st = b.get_state();
     int score;
     Hash_Flags flag = Hash_Flags::ALPHA;
-
-    if(ply && (score = tt.read_hash(st->hash_key, alpha, beta, depth))!= Hash_Flags::NO_HASH_ENTRY){
+    bool pv_node = (beta - alpha) > 1;
+    if(ply!=0 && (score = tt.read_hash(st->hash_key, alpha, beta, depth, ply))!= Hash_Flags::NO_HASH_ENTRY && !pv_node){
         return score;
     }
 
@@ -148,27 +148,25 @@ int Search::negamax(Board& b, Transposition_table& tt, int alpha, int beta, int 
             heuristics.pv_length[ply] = heuristics.pv_length[ply+1];
 
             if(score >= beta){
-                tt.write_hash(st->hash_key, beta, depth, Hash_Flags::BETA);
+                tt.write_hash(st->hash_key, beta, depth, ply, Hash_Flags::BETA);
 
                 if(m.capture() == 0){
                     heuristics.killer_moves[1][ply] = heuristics.killer_moves[0][ply];
                     heuristics.killer_moves[0][ply] = m.get_data();
                 }
-
                 return beta;
             }
         }
-
     }
 
     if(legal_moves == 0){
         if(in_check){
-            return -49000 + ply;
+            return -MATE_VALUE + ply;
         }
         return 0;
     }
 
-    tt.write_hash(st->hash_key, alpha, depth, flag);
+    tt.write_hash(st->hash_key, alpha, depth, ply, flag);
 
     return alpha;
 }

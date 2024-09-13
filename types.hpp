@@ -111,7 +111,9 @@ enum Flags{
 enum Extremes{
     MAX = 50000,
     MIN = -50000,
-    MAX_PLY=64
+    MAX_PLY=64,
+    MATE_VALUE=49000,
+    MATE_SCORE=48000,
 };
 
 enum Hash_Flags{

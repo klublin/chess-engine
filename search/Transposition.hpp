@@ -20,8 +20,8 @@ class Transposition_table{
     };
     std::array<Transposition_node, Hash_Flags::HASH_SIZE> tt;
 public:
-    void write_hash(uint64_t hash_key, int score, int depth, Hash_Flags flags);
-    int read_hash(uint64_t hash_key, int alpha, int beta, int depth);
+    void write_hash(uint64_t hash_key, int score, int depth, int ply, Hash_Flags flags);
+    int read_hash(uint64_t hash_key, int alpha, int beta, int depth, int ply);
     inline void clear_table(){
         std::for_each(tt.begin(), tt.end(), [](Transposition_node& e) {
             e.clear();
