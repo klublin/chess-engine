@@ -114,6 +114,14 @@ enum Extremes{
     MAX_PLY=64
 };
 
+enum Hash_Flags{
+    EXACT=0,
+    ALPHA=1,
+    BETA=2,
+    NO_HASH_ENTRY=100000,
+    HASH_SIZE=0x400000
+};
+
 static inline uint64_t get_square(Square s){
     return 1ULL << s;
 }

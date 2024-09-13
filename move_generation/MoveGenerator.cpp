@@ -25,71 +25,71 @@ inline void helper_promo(uint64_t board, int incr, move_list& list, int flags){
 	}
 }
 
-void generate_pawn_moves(State* st, move_list& list, Table& t){
+void generate_pawn_moves(State* st, move_list& list){
     //need to add each move to a movelist
     if(st->side == WHITE){
-        uint64_t promote = st->bitboards[P] & t.mask_rank[RANK_7];
-        uint64_t pawns = st->bitboards[P] & t.clear_rank[RANK_7];
+        uint64_t promote = st->bitboards[P] & table.mask_rank[RANK_7];
+        uint64_t pawns = st->bitboards[P] & table.clear_rank[RANK_7];
 
         //quiet moves
         uint64_t push = (pawns >> 8) & ~st->occup[OCCUP_ALL];
-        uint64_t double_push = ((push & t.mask_rank[RANK_3]) >> 8) & ~st->occup[OCCUP_ALL];
+        uint64_t double_push = ((push & table.mask_rank[RANK_3]) >> 8) & ~st->occup[OCCUP_ALL];
 
         helper<WHITE>(push, 8, list, 0);
         helper<WHITE>(double_push, 16, list, DOUBLE);
 
         //promotion
-        uint64_t b1 = ((promote & t.clear_file[FILE_H]) >> 7) & st->occup[OCCUP_BLACK];
-        uint64_t b2 = ((promote & t.clear_file[FILE_A]) >> 9) & st->occup[OCCUP_BLACK];
+        uint64_t b1 = ((promote & table.clear_file[FILE_H]) >> 7) & st->occup[OCCUP_BLACK];
+        uint64_t b2 = ((promote & table.clear_file[FILE_A]) >> 9) & st->occup[OCCUP_BLACK];
         uint64_t b3 = promote >> 8 & ~st->occup[OCCUP_ALL];
 
         helper_promo<WHITE>(b1, 7, list, CAPTURE);
         helper_promo<WHITE>(b2, 9, list, CAPTURE);
         helper_promo<WHITE>(b3, 8, list, 0);
 
-        uint64_t cap1 = ((pawns & t.clear_file[FILE_H]) >> 7) & st->occup[OCCUP_BLACK];
-        uint64_t cap2 = ((pawns & t.clear_file[FILE_A]) >> 9) & st->occup[OCCUP_BLACK];
+        uint64_t cap1 = ((pawns & table.clear_file[FILE_H]) >> 7) & st->occup[OCCUP_BLACK];
+        uint64_t cap2 = ((pawns & table.clear_file[FILE_A]) >> 9) & st->occup[OCCUP_BLACK];
 
         helper<WHITE>(cap1, 7, list, CAPTURE);
         helper<WHITE>(cap2, 9, list, CAPTURE);
         
         if(st->enpessant != none){  
-            cap1 = ((pawns & t.clear_file[FILE_H]) >> 7) & get_square(st->enpessant);
-            cap2 = ((pawns & t.clear_file[FILE_A]) >> 9) & get_square(st->enpessant);
+            cap1 = ((pawns & table.clear_file[FILE_H]) >> 7) & get_square(st->enpessant);
+            cap2 = ((pawns & table.clear_file[FILE_A]) >> 9) & get_square(st->enpessant);
             
             helper<WHITE>(cap1, 7, list, ENPASSANT | CAPTURE);
             helper<WHITE>(cap2, 9, list, ENPASSANT | CAPTURE);
         }
     }
     else{
-        uint64_t promote = st->bitboards[p] & t.mask_rank[RANK_2];
-        uint64_t pawns = st->bitboards[p] & t.clear_rank[RANK_2];
+        uint64_t promote = st->bitboards[p] & table.mask_rank[RANK_2];
+        uint64_t pawns = st->bitboards[p] & table.clear_rank[RANK_2];
 
         //quiet moves
         uint64_t push = (pawns << 8) & ~st->occup[OCCUP_ALL];
-        uint64_t double_push = ((push & t.mask_rank[RANK_6]) << 8) & ~st->occup[OCCUP_ALL];
+        uint64_t double_push = ((push & table.mask_rank[RANK_6]) << 8) & ~st->occup[OCCUP_ALL];
 
         helper<BLACK>(push, -8, list, 0);
         helper<BLACK>(double_push, -16, list, DOUBLE);
 
         //promotion
-        uint64_t b1 = ((promote & t.clear_file[FILE_A]) << 7) & st->occup[OCCUP_WHITE];
-        uint64_t b2 = ((promote & t.clear_file[FILE_H]) << 9) & st->occup[OCCUP_WHITE];
+        uint64_t b1 = ((promote & table.clear_file[FILE_A]) << 7) & st->occup[OCCUP_WHITE];
+        uint64_t b2 = ((promote & table.clear_file[FILE_H]) << 9) & st->occup[OCCUP_WHITE];
         uint64_t b3 = promote << 8 & ~st->occup[OCCUP_ALL];
 
         helper_promo<BLACK>(b1, -7, list, CAPTURE);
         helper_promo<BLACK>(b2, -9, list, CAPTURE);
         helper_promo<BLACK>(b3, -8, list, 0);
 
-        uint64_t cap1 = ((pawns & t.clear_file[FILE_A]) << 7) & st->occup[OCCUP_WHITE];
-        uint64_t cap2 = ((pawns & t.clear_file[FILE_H]) << 9) & st->occup[OCCUP_WHITE];
+        uint64_t cap1 = ((pawns & table.clear_file[FILE_A]) << 7) & st->occup[OCCUP_WHITE];
+        uint64_t cap2 = ((pawns & table.clear_file[FILE_H]) << 9) & st->occup[OCCUP_WHITE];
 
         helper<BLACK>(cap1, -7, list, CAPTURE);
         helper<BLACK>(cap2, -9, list, CAPTURE);
 
         if(st->enpessant != none){
-            cap1 = ((pawns & t.clear_file[FILE_A]) << 7) & get_square(st->enpessant);
-            cap2 = ((pawns & t.clear_file[FILE_H]) << 9) & get_square(st->enpessant);
+            cap1 = ((pawns & table.clear_file[FILE_A]) << 7) & get_square(st->enpessant);
+            cap2 = ((pawns & table.clear_file[FILE_H]) << 9) & get_square(st->enpessant);
             helper<BLACK>(cap1, -7, list, ENPASSANT | CAPTURE);
             helper<BLACK>(cap2, -9, list, ENPASSANT | CAPTURE);
         }
@@ -159,7 +159,7 @@ void generate_moves(Board& b, move_list& list){
 move_list generate_all(Board& board){
     move_list list;
     State *st = board.get_state();
-    generate_pawn_moves(st, list, board.table);
+    generate_pawn_moves(st, list);
     generate_castle_moves(board, list);
 
     generate_moves<KING>(board, list);
@@ -170,5 +170,3 @@ move_list generate_all(Board& board){
     
     return list;
 }
-
-Table& move_list::t(Table::get_instance());

@@ -120,6 +120,8 @@ void Board::read_fen(const std::string& fen){
         st.occup[BLACK] |= st.bitboards[pt+BLACK];
     }
     st.occup[OCCUP_ALL] = st.occup[WHITE] | st.occup[BLACK];
+
+    st.generate_hash();
 }
 
 
@@ -187,6 +189,10 @@ inline void Board::update_bitboards(int piece, Square source, Square dest, color
     set_bit(st.bitboards[piece], dest);
     pop_bit(st.occup[us], source);
     set_bit(st.occup[us], dest);
+    //remove from source square
+    st.hash_key ^= table.piece_keys[piece][source];
+    //place on dest square
+    st.hash_key ^= table.piece_keys[piece][dest];
 }
 
 void Board::save_state(){
@@ -206,15 +212,17 @@ bool Board::make_move(Move m){
 		Square cap_sq = dest;
 		if(m.flags() & ENPASSANT){
 			us == WHITE ? cap_sq += 8 : cap_sq -= 8;
+            st.hash_key ^= table.enpassant_keys[st.enpessant];
 			st.enpessant = none;
 		}
 		Piece captured = st.which_piece(cap_sq);
         if(captured == no_piece){
-            m.print(table);
+            m.print();
             print();
             assert(false);
         }
 		pop_bit(st.bitboards[captured], cap_sq);
+        st.hash_key ^= table.piece_keys[captured][cap_sq];
 		pop_bit(st.occup[~us], cap_sq);
     }
 
@@ -222,13 +230,17 @@ bool Board::make_move(Move m){
         //pawn gets "captured"
         pop_bit(st.bitboards[piece], source);
         pop_bit(st.occup[us], source);
-
+        //remove pawn 
+        st.hash_key ^= table.piece_keys[piece][source];
         piece = static_cast<Piece>(m.promoted());
+        //add the promoted piece into the hash key, it will be removed in the update_bitboards call
+        st.hash_key ^= table.piece_keys[piece][source];
     }
     
     //the moves before rely on other processing first before updating the bitboards
     //we update certain variables to the correct state before moving the intended piece
     update_bitboards(piece, source, dest, us);
+
     if(m.flags() & CASTLING){
         switch(m.target()){
             case g1:
@@ -248,13 +260,25 @@ bool Board::make_move(Move m){
     st.enpessant = none;
 
     if(m.flags() & DOUBLE){
-        us == WHITE ? st.enpessant = static_cast<Square>(dest + 8) : st.enpessant = static_cast<Square>(dest - 8);
+        if(us == WHITE){
+            st.enpessant = static_cast<Square>(dest + 8);
+            st.hash_key^= table.enpassant_keys[dest+8];
+        }
+        else{
+            st.enpessant = static_cast<Square>(dest - 8);
+            st.hash_key ^= table.enpassant_keys[dest - 8];
+
+        }
     }
 
+    st.hash_key ^= table.castling_keys[st.castling_rights];
     st.castling_rights &= castle_rights_table[source];
     st.castling_rights &= castle_rights_table[dest];
+    st.hash_key ^= table.castling_keys[st.castling_rights];
 
     st.side = them;
+    st.hash_key ^= table.side_key;
+    
     st.occup[OCCUP_ALL] = st.occup[WHITE] | st.occup[BLACK];
 
     Square king_loc = static_cast<Square>(get_lsb_index(st.bitboards[K+us]));

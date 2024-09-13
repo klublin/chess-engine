@@ -6,8 +6,8 @@
 
 class UCI{
     Board board;
-    Search s;
-    static Table& t;
+    //remember to find place to call clear on this
+    static Transposition_table tt;
 
     std::string str_move(const Move& m);
     Move to_move(std::string&);

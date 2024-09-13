@@ -5,15 +5,17 @@
 
 class State{
 public:
+    void generate_hash();
     color side;
     Square enpessant;
     uint8_t castling_rights;
     Piece captured;
+    uint64_t hash_key;
 
     std::array<uint64_t, 12> bitboards;
     std::array<uint64_t, 3> occup;
 
-    State() : captured(no_piece), bitboards{0}, occup{0} {}
+    State() : captured(no_piece), hash_key(0), bitboards{0}, occup{0} {}
 
     // we don't need to copy the bitboards
     // State(const State& t){

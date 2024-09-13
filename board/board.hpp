@@ -19,9 +19,7 @@ class Board{
         15, 15, 15, 15, 15, 15, 15, 15,
         13, 15, 15, 15, 12, 15, 15, 14
     };
-public:
-    Table& table;
-    
+public:    
     State st;
     std::stack<State> history;
     State* get_state() {return &st;};
@@ -75,10 +73,9 @@ public:
     }
 
     void print();
-
     static void debug(uint64_t); 
 
-    Board(const std::string &s) : table(Table::get_instance()){read_fen(s);}
-    Board() : table(Table::get_instance()) {}
+    Board(const std::string &s) {read_fen(s);}
+    Board() {}
     //friend std::ostream& operator<<(std::ostream& os, const Board&);
 };

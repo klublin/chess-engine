@@ -299,8 +299,39 @@ void Table::init_sliders(){
     }
 }
 
+#include <unordered_set>
+void Table::init_keys(){
+    std::unordered_set<int> used;
+    for(int piece = 0; piece < no_piece; piece++){
+        for(int square = 0; square < none; square++){
+            piece_keys[piece][square] = random_num();
+            if(used.find(piece_keys[piece][square])!= used.end()){
+                std::cout << "clash!\n";
+            }
+            used.insert(piece_keys[piece][square]);
+        }
+    }
+    used.clear();
+    for(int square = 0; square < none; square++){
+        enpassant_keys[square] = random_num();
+        if(used.find(enpassant_keys[square])!= used.end()){
+            std::cout << "clash!\n";
+        }
+        used.insert(enpassant_keys[square]);
+    }
+
+    for(int i = 0; i < 16; i++){
+        castling_keys[i] = random_num();
+    }
+
+    side_key = random_num();
+}
+
 Table::Table(){
     init_sliders();
     fill_magic_table_bishop();
     fill_magic_table_rook();
+    init_keys();
 }
+
+const Table& table = Table::get_instance();

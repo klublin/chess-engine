@@ -3,16 +3,20 @@
 #include "MoveGenerator.hpp"
 #include "search.hpp"
 #include <cassert>
+#include "types.hpp"
 
 int Search::quiescence(Board& b, int alpha, int beta){
-    nodes++;
     State *st = b.get_state();
-    int evaluation = Evaluation::score_material(st);
+    nodes++;
 
+    if(ply > (Extremes::MAX_PLY - 1)){
+        return Evaluation::score_material(st);
+    }
+
+    int evaluation = Evaluation::score_material(st);
     if(evaluation >= beta){
         return beta;
     }
-
     if(evaluation > alpha){
         alpha = evaluation;
     }
@@ -31,33 +35,63 @@ int Search::quiescence(Board& b, int alpha, int beta){
 
         b.unmake_move(m);
 
-        if(score >= beta){
-            return beta;
-        }
         if(score > alpha){
             alpha = score;
+
+            if(score >= beta){
+                return beta;
+            }
         }
     }
     return alpha;
 }   
 
-int Search::negamax(Board& b, int alpha, int beta, int depth){
+int Search::negamax(Board& b, Transposition_table& tt, int alpha, int beta, int depth){
+    State *st = b.get_state();
+    int score;
+    Hash_Flags flag = Hash_Flags::ALPHA;
+
+    if(ply && (score = tt.read_hash(st->hash_key, alpha, beta, depth))!= Hash_Flags::NO_HASH_ENTRY){
+        return score;
+    }
+
     heuristics.pv_length[ply] = ply;
+
     if(depth == 0){
         return quiescence(b, alpha, beta);
     }
 
     if(ply > (Extremes::MAX_PLY - 1)){
-        return Evaluation::score_material(b.get_state());
+        return Evaluation::score_material(st);
     }
 
-    State *st = b.get_state();
     nodes++;
-
     bool in_check = b.attacked(static_cast<Square>(get_lsb_index(st->bitboards[K + st->side])), ~st->side);
-
     if(in_check) depth++;
+
+    //null move pruning
+    if(depth >= 3 && !in_check && ply){
+        b.save_state();
+        ply++;
+
+        st->side = ~st->side;
+        st->hash_key ^= table.side_key;
+
+        if(st->enpessant!= none) st->hash_key ^= table.enpassant_keys[st->enpessant];
+        st->enpessant = none;
+
+        score = -negamax(b, tt, -beta, -beta + 1, depth - 1 - 2);
+
+        b.unmake_move(Move::none());
+        ply--;
+
+        if(score >= beta){
+            return beta;
+        }
+    }
+
     int legal_moves = 0;
+    int moves_searched = 0;
 
     for(const auto& m : generate_all(b).sort(st, ply, heuristics)){
         ply++;
@@ -67,22 +101,39 @@ int Search::negamax(Board& b, int alpha, int beta, int depth){
         }
 
         legal_moves++;
+        
+        if(moves_searched == 0){
+            score = -negamax(b, tt, -beta, -alpha, depth - 1);
+        }
+        else{
+            if(
+                moves_searched >= FULL_DEPTH_MOVES && 
+                depth >= REDUCTION_LIMIT && 
+                !in_check && 
+                m.capture() == 0 && m.promoted() == 0
+            ){
+                score = -negamax(b, tt, -alpha - 1, -alpha, depth - 2);
+            }
+            else{
+                score = alpha + 1;
+            }
 
-        int score = -negamax(b, -beta, -alpha, depth - 1);
+            if(score > alpha)
+            {
+                score = -negamax(b, tt, -alpha - 1, -alpha, depth -1);
+
+                if((score > alpha) && (score < beta)){
+                    score = -negamax(b, tt, -beta, -alpha, depth - 1);
+                }
+            }
+        }
 
         ply--;            
         b.unmake_move(m);
-
-        if(score >= beta){
-            if(m.capture() == 0){
-                heuristics.killer_moves[1][ply] = heuristics.killer_moves[0][ply];
-                heuristics.killer_moves[0][ply] = m.get_data();
-            }
-
-            return beta;
-        }
+        moves_searched++;
 
         if(score > alpha){
+            flag = Hash_Flags::EXACT;
             if(m.capture() == 0){
                 heuristics.history_moves[m.piece()][m.target()] += depth;
             }
@@ -95,6 +146,17 @@ int Search::negamax(Board& b, int alpha, int beta, int depth){
             }
 
             heuristics.pv_length[ply] = heuristics.pv_length[ply+1];
+
+            if(score >= beta){
+                tt.write_hash(st->hash_key, beta, depth, Hash_Flags::BETA);
+
+                if(m.capture() == 0){
+                    heuristics.killer_moves[1][ply] = heuristics.killer_moves[0][ply];
+                    heuristics.killer_moves[0][ply] = m.get_data();
+                }
+
+                return beta;
+            }
         }
 
     }
@@ -105,6 +167,8 @@ int Search::negamax(Board& b, int alpha, int beta, int depth){
         }
         return 0;
     }
+
+    tt.write_hash(st->hash_key, alpha, depth, flag);
 
     return alpha;
 }

@@ -1,17 +1,17 @@
-#include "uci.hpp"
 #include <iostream>
-#include "MoveGenerator.hpp"
 #include <algorithm>
+#include "uci.hpp"
+#include "MoveGenerator.hpp"
 
-Table& UCI::t = Table::get_instance();
+Transposition_table UCI::tt;
 
 std::string UCI::str_move(const Move& m){
     std::string move;
-    move += t.square_map[m.source()];
-    move += t.square_map[m.target()];
+    move += table.square_map[m.source()];
+    move += table.square_map[m.target()];
 
     if(m.promoted()){
-        move += t.pieces[m.promoted()];
+        move += table.pieces[m.promoted()];
     }
     return move;
 }
@@ -79,19 +79,32 @@ void UCI::parse_go(std::istringstream& is){
     if(!(is >> depth)){
         depth=6;
     }
-    
+
+    int alpha = Extremes::MIN;
+    int beta = Extremes::MAX;
     for(int curr_depth = 1; curr_depth <= depth; curr_depth++){
-        int score = s.negamax(board, Extremes::MIN, Extremes::MAX, curr_depth);
+        int score = s.negamax(board, tt, alpha, beta, curr_depth);
+
+        // we fell outside the window, so try again with a full-width window (and the same depth)
+        if ((score <= alpha) || (score >= beta)) {
+            alpha = -50000;    
+            beta = 50000;      
+            continue; 
+        }
+        
+        // set up the window for the next iteration
+        alpha = score - 50;
+        beta = score + 50;
         std::cout << "info score cp " << score << " depth " << curr_depth << " nodes " << s.nodes << " ";
 
         for(int i = 0; i < h->pv_length[0]; i++){
-            h->pv_table[0][i].print(t);
+            h->pv_table[0][i].print();
         }
         std::cout << "\n";
     }
 
     std::cout << "bestmove ";
-    h->pv_table[0][0].print(Table::get_instance());
+    h->pv_table[0][0].print();
     std::cout << "\n";
 }
 

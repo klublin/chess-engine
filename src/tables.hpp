@@ -21,6 +21,7 @@ class Table{
     uint64_t generate_king(Square);
     uint64_t generate_knight(Square);
     void init_sliders();
+    void init_keys();
 public:
     const std::array<uint64_t, 8> clear_rank = {
         72057594037927935ULL,
@@ -129,8 +130,15 @@ public:
     std::array<std::array<uint64_t, 64>, 64> pawn_attack_table;
     std::array<uint64_t, 64> knight_attack_table;
 
+    std::array<std::array<uint64_t, 12>, 64> piece_keys;
+    std::array<uint64_t, 16> castling_keys;
+    std::array<uint64_t, 64> enpassant_keys;
+    uint64_t side_key;
+
     static Table& get_instance(){
         static Table t;
         return t;
     }
 };
+
+extern const Table& table;

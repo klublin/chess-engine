@@ -38,8 +38,8 @@ public:
     int score(State *st, int ply, Heuristics& h) const;
     constexpr bool operator==(const Move& m) const {return data == m.data;};
     constexpr bool operator!=(const Move& m) const {return data != m.data;};
-    void print(Table& t) const{
-        std::cout << t.square_map[source()] << t.square_map[target()] << (promoted() ? t.pieces[promoted()] : char(0)) << " ";
+    void print() const{
+        std::cout << table.square_map[source()] << table.square_map[target()] << (promoted() ? table.pieces[promoted()] : char(0)) << " ";
     }
 
     int get_data() const{

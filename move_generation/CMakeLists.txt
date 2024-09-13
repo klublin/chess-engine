@@ -1,3 +1,3 @@
-target_sources(chess PRIVATE MoveGenerator.cpp Move.cpp)
+target_sources(kevbot PRIVATE MoveGenerator.cpp Move.cpp)
 
-target_include_directories(chess PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(kevbot PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
